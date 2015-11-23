@@ -52,6 +52,13 @@
     <Compile Include="IE\IeDoublePointWithQuality.cs" />
     <Compile Include="IE\IeFileReadyQualifier.cs" />
     <Compile Include="IE\IeFileSegment.cs" />
+    <Compile Include="IE\IeFixedTestBitPattern.cs" />
+    <Compile Include="IE\IeLastSectionOrSegmentQualifier.cs" />
+    <Compile Include="IE\IeLengthOfFileOrSection.cs" />
+    <Compile Include="IE\IeNameOfFile.cs" />
+    <Compile Include="IE\IeNameOfSection.cs" />
+    <Compile Include="IE\IeNormalizedValue.cs" />
+    <Compile Include="IE\IeProtectionOutputCircuitInformation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

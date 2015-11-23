@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\ConnectionSettings.cs" />
+    <Compile Include="Classes\TypeId.cs" />
     <Compile Include="IE\IeProtectionQuality.cs" />
     <Compile Include="IE\IeBinaryStateInformation.cs" />
     <Compile Include="IE\Base\IeAbstractQualifierOfCommand.cs" />
@@ -71,6 +73,19 @@
     <Compile Include="IE\IeRegulatingStepCommand.cs" />
     <Compile Include="IE\IeScaledValue.cs" />
     <Compile Include="IE\IeSectionReadyQualifier.cs" />
+    <Compile Include="IE\IeSelectAndCallQualifier.cs" />
+    <Compile Include="IE\IeShortFloat.cs" />
+    <Compile Include="IE\IeSingleCommand.cs" />
+    <Compile Include="IE\IeSinglePointWithQuality.cs" />
+    <Compile Include="IE\IeSingleProtectionEvent.cs" />
+    <Compile Include="IE\IeStatusAndStatusChanges.cs" />
+    <Compile Include="IE\IeStatusOfFile.cs" />
+    <Compile Include="IE\IeTestSequenceCounter.cs" />
+    <Compile Include="IE\IeTime24.cs" />
+    <Compile Include="IE\IeTime16.cs" />
+    <Compile Include="IE\IeTime56.cs" />
+    <Compile Include="IE\IeValueWithTransientState.cs" />
+    <Compile Include="Classes\InformationObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

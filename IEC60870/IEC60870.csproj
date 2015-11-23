@@ -63,7 +63,17 @@
     <Compile Include="IE\IeProtectionStartEvent.cs" />
     <Compile Include="IE\IeQualifierOfCounterInterrogation.cs" />
     <Compile Include="IE\IeQualifierOfInterrogation.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IE\IeQualifierOfParameterActivation.cs" />
+    <Compile Include="IE\IeQualifierOfParameterOfMeasuredValues.cs" />
+    <Compile Include="IE\IeQualifierOfResetProcessCommand.cs" />
+    <Compile Include="IE\IeQualifierOfSetPointCommand.cs" />
+    <Compile Include="IE\IeQuality.cs" />
+    <Compile Include="IE\IeRegulatingStepCommand.cs" />
+    <Compile Include="IE\IeScaledValue.cs" />
+    <Compile Include="IE\IeSectionReadyQualifier.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -27,7 +27,7 @@ namespace IEC60870.IE
                 case 3:
                     return DoubleCommandState.NOT_PERMITTED_B;
                 default:
-                    return DoubleCommandState.NOT_PERMITTED_A;
+                    throw new ArgumentException("Invalid code");
             }
         }
 

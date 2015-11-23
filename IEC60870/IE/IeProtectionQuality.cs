@@ -26,7 +26,7 @@ namespace IEC60870.IE
 
         public override String ToString()
         {
-            return "Protection Quality, elapsed time invalid: " + isElapsedTimeInvalid() + ", " + base.toString();
+            return "Protection Quality, elapsed time invalid: " + isElapsedTimeInvalid() + ", " + base.ToString();
         }
     }
 }

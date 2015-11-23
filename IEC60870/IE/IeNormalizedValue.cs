@@ -6,7 +6,7 @@ namespace IEC60870.IE
 {
     public class IeNormalizedValue : InformationElement
     {
-        int value;
+        protected int value;
 
         public IeNormalizedValue(int value)
         {
@@ -17,7 +17,7 @@ namespace IEC60870.IE
             this.value = value;
         }
 
-        IeNormalizedValue(BinaryReader reader)
+        public IeNormalizedValue(BinaryReader reader)
         {
             value = reader.ReadByte() | (reader.ReadByte() << 8);
         }

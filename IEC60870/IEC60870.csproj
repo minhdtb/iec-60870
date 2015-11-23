@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IE\IeProtectionQuality.cs" />
     <Compile Include="IE\IeBinaryStateInformation.cs" />
     <Compile Include="IE\Base\IeAbstractQualifierOfCommand.cs" />
     <Compile Include="IE\Base\IeAbstractQuality.cs" />
@@ -59,6 +60,9 @@
     <Compile Include="IE\IeNameOfSection.cs" />
     <Compile Include="IE\IeNormalizedValue.cs" />
     <Compile Include="IE\IeProtectionOutputCircuitInformation.cs" />
+    <Compile Include="IE\IeProtectionStartEvent.cs" />
+    <Compile Include="IE\IeQualifierOfCounterInterrogation.cs" />
+    <Compile Include="IE\IeQualifierOfInterrogation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

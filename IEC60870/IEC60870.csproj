@@ -40,10 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IE\IeBinaryStateInformation.cs" />
     <Compile Include="IE\Base\IeAbstractQualifierOfCommand.cs" />
     <Compile Include="IE\Base\IeAbstractQuality.cs" />
     <Compile Include="IE\Base\InformationElement.cs" />
     <Compile Include="IE\IeAckFileOrSectionQualifier.cs" />
+    <Compile Include="IE\IeBinaryCounterReading.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

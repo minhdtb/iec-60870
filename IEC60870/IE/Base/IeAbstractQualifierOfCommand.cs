@@ -7,7 +7,7 @@ namespace IEC60870.IE.Base
     {
         protected int value;
 
-        IeAbstractQualifierOfCommand(int qualifier, Boolean select)
+        public IeAbstractQualifierOfCommand(int qualifier, Boolean select)
         {
             if (qualifier < 0 || qualifier > 31)
             {
@@ -22,7 +22,7 @@ namespace IEC60870.IE.Base
             }
         }
 
-        IeAbstractQualifierOfCommand(BinaryReader reader)
+        public IeAbstractQualifierOfCommand(BinaryReader reader)
         {
             value = reader.ReadByte();
         }

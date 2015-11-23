@@ -46,6 +46,12 @@
     <Compile Include="IE\Base\InformationElement.cs" />
     <Compile Include="IE\IeAckFileOrSectionQualifier.cs" />
     <Compile Include="IE\IeBinaryCounterReading.cs" />
+    <Compile Include="IE\IeCauseOfInitialization.cs" />
+    <Compile Include="IE\IeChecksum.cs" />
+    <Compile Include="IE\IeDoubleCommand.cs" />
+    <Compile Include="IE\IeDoublePointWithQuality.cs" />
+    <Compile Include="IE\IeFileReadyQualifier.cs" />
+    <Compile Include="IE\IeFileSegment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

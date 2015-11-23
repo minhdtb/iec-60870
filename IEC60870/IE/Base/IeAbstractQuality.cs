@@ -29,7 +29,7 @@ namespace IEC60870.IE.Base
             }
         }
 
-        IeAbstractQuality(BinaryReader reader)
+        public IeAbstractQuality(BinaryReader reader)
         {
             value = reader.ReadByte();
         }

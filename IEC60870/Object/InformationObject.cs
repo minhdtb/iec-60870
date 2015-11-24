@@ -21,6 +21,19 @@ namespace IEC60870.Object
 
         public InformationObject(BinaryReader reader, TypeId typeId, int numberOfSequenceElements, ConnectionSettings settings)
         {
+            if (settings.ioaFieldLength == 1)
+            {
+                informationObjectAddress = reader.ReadByte();
+            }
+            else if (settings.ioaFieldLength == 2)
+            {
+                informationObjectAddress = reader.ReadByte() + (reader.ReadByte() << 8);
+            }
+            else if (settings.ioaFieldLength == 3)
+            {
+                informationObjectAddress = reader.ReadByte() + (reader.ReadByte() << 8) + (reader.ReadByte() << 16);
+            }
+
             switch (typeId)
             {
                 // 1

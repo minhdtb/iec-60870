@@ -2,6 +2,7 @@
 using IEC60870.Enum;
 using System;
 using System.IO;
+using System.Text;
 
 namespace IEC60870.Object
 {
@@ -113,8 +114,7 @@ namespace IEC60870.Object
             }
 
             if (typeIdCode < 128)
-            {
-
+            {                
                 informationObjects = new InformationObject[numberOfInformationObjects];
 
                 for (int i = 0; i < numberOfInformationObjects; i++)
@@ -240,6 +240,48 @@ namespace IEC60870.Object
             }
 
             return i - origi;
+        }
+
+        public override String ToString()
+        {
+            StringBuilder builder = new StringBuilder("Type ID: " + (int)typeId + "\nCause of transmission: " + causeOfTransmission + ", test: "
+                    + isTestFrame() + ", negative con: " + isNegativeConfirm() + "\nOriginator address: "
+                    + originatorAddress + ", Common address: " + commonAddress);
+
+            if (informationObjects != null)
+            {
+                foreach (InformationObject informationObject in informationObjects)
+                {
+                    builder.Append("\n");
+                    builder.Append(informationObject.ToString());
+                }
+            }
+            else
+            {
+                builder.Append("\nPrivate Information:\n");
+                int l = 1;
+                foreach (byte b in privateInformation)
+                {
+                    if ((l != 1) && ((l - 1) % 8 == 0))
+                    {
+                        builder.Append(' ');
+                    }
+                    if ((l != 1) && ((l - 1) % 16 == 0))
+                    {
+                        builder.Append('\n');
+                    }
+                    l++;
+                    builder.Append("0x");
+                    String hexString = (b & 0xff).ToString("X");
+                    if (hexString.Length == 1)
+                    {
+                        builder.Append(0);
+                    }
+                    builder.Append(hexString + " ");
+                }
+            }
+
+            return builder.ToString();
         }
     }
 }

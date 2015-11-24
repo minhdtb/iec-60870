@@ -65,6 +65,8 @@ namespace IEC60870.Connection
                                 innerConnection.receiveSequenceNumber = (aPdu.getSendSeqNumber() + 1) % 32768;
                                 innerConnection.handleReceiveSequenceNumber(aPdu);
 
+                                Console.WriteLine("\nReceived ASDU:\n" + aPdu.getASdu().ToString());
+
                                 int numUnconfirmedIPdusReceived = innerConnection.getSequenceNumberDifference(
                                     innerConnection.receiveSequenceNumber,
                                     innerConnection.acknowledgedReceiveSequenceNumber);
@@ -72,7 +74,12 @@ namespace IEC60870.Connection
                                 {
                                     innerConnection.sendSFormatPdu();
                                 }
+                                else
+                                {
+                                    innerConnection.sendSFormatPdu();
+                                }
 
+                                innerConnection.resetMaxIdleTimeTimer();
                                 break;
                             case APdu.APCI_TYPE.STARTDT_CON:
                                 innerConnection.resetMaxIdleTimeTimer();
@@ -155,6 +162,11 @@ namespace IEC60870.Connection
             }
         }
 
+        public void startDataTransfer()
+        {
+            writer.Write(STARTDT_ACT_BUFFER, 0, STARTDT_ACT_BUFFER.Length);
+        }
+
         public void send(ASdu aSdu)
         {
             acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
@@ -183,6 +195,8 @@ namespace IEC60870.Connection
 
         private void resetMaxIdleTimeTimer()
         {
+            writer.Write(TESTFR_ACT_BUFFER, 0, TESTFR_ACT_BUFFER.Length);
+            writer.Flush();
         }
 
         private int getSequenceNumberDifference(int x, int y)

@@ -11,6 +11,25 @@ namespace IEC60870.IE
 
         public IeTime56(long timestamp, TimeZone timeZone, Boolean invalid)
         {
+            var datetime = new DateTime(timestamp);
+            int ms = datetime.Millisecond + 1000 * datetime.Second;
+
+            value[0] = (byte)ms;
+            value[1] = (byte)(ms >> 8);
+            value[2] = (byte)datetime.Minute;
+
+            if (invalid)
+            {
+                value[2] |= 0x80;
+            }
+            value[3] = (byte)datetime.Hour;
+            if (datetime.IsDaylightSavingTime())
+            {
+                value[3] |= 0x80;
+            }
+            value[4] = (byte)(datetime.Day + (((((int)datetime.DayOfWeek + 5) % 7) + 1) << 5));
+            value[5] = (byte)(datetime.Month + 1);
+            value[6] = (byte)(datetime.Year % 100);
         }
 
         public IeTime56(long timestamp) : this(timestamp, TimeZone.CurrentTimeZone, false)

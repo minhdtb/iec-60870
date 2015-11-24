@@ -10,9 +10,12 @@ namespace IEC60870.IE
 
         public IeTime24(long timestamp)
         {
-            int ms = 0;
+            var datetime = new DateTime(timestamp);
+            int ms = datetime.Millisecond + 1000 * datetime.Second;
+
             value[0] = (byte)ms;
             value[1] = (byte)(ms >> 8);
+            value[2] = (byte)datetime.Minute;
         }
 
         public IeTime24(int timeInMs)

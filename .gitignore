@@ -1,4 +1,6 @@
 /IEC60870/obj/
 /IEC60870/bin/
+/TestApp/obj/
+/TestApp/bin/
 AssemblyInfo.cs
 /.vs/

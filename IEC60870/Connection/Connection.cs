@@ -3,6 +3,7 @@ using IEC60870.Util;
 using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace IEC60870.Connection
 {
@@ -31,6 +32,8 @@ namespace IEC60870.Connection
         private static byte[] TESTFR_ACT_BUFFER = new byte[] { 0x68, 0x04, 0x43, 0x00, 0x00, 0x00 };
         private static byte[] STARTDT_ACT_BUFFER = new byte[] { 0x68, 0x04, 0x07, 0x00, 0x00, 0x00 };
         private static byte[] STARTDT_CON_BUFFER = new byte[] { 0x68, 0x04, 0x0b, 0x00, 0x00, 0x00 };
+
+        Task maxTimeNoAckSentFuture;
 
         private class ConnectionReader : ThreadBase
         {
@@ -76,7 +79,14 @@ namespace IEC60870.Connection
                                 }
                                 else
                                 {
-                                    innerConnection.sendSFormatPdu();
+                                    if (innerConnection.maxTimeNoAckSentFuture == null)
+                                    {
+                                        innerConnection.maxTimeNoAckSentFuture = PeriodicTaskFactory.Start(() =>
+                                        {
+                                            innerConnection.sendSFormatPdu();
+                                        },
+                                    intervalInMilliseconds: innerConnection.settings.maxTimeNoAckSent);
+                                    };                                                                          
                                 }
 
                                 innerConnection.resetMaxIdleTimeTimer();

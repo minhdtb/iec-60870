@@ -36,7 +36,7 @@ namespace IEC60870.IE
             value |= (int)commandState;
         }
 
-        IeRegulatingStepCommand(BinaryReader reader) : base(reader)
+        public IeRegulatingStepCommand(BinaryReader reader) : base(reader)
         {
         }
 

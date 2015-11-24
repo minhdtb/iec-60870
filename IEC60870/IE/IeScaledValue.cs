@@ -9,11 +9,11 @@ namespace IEC60870.IE
         {
         }
 
-        IeScaledValue(BinaryReader reader) : base(reader)
-        {            
+        public IeScaledValue(BinaryReader reader) : base(reader)
+        {
         }
-        
-         public override String ToString()
+
+        public override String ToString()
         {
             return "Scaled value: " + value;
         }

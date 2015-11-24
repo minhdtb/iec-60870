@@ -13,7 +13,7 @@ namespace IEC60870.IE
             this.value = value;
         }
 
-        IeQualifierOfResetProcessCommand(BinaryReader reader)
+        public IeQualifierOfResetProcessCommand(BinaryReader reader)
         {
             value = reader.ReadByte();
         }

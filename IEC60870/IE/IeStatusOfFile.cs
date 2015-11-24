@@ -20,7 +20,7 @@ namespace IEC60870.IE
             this.transferIsActive = transferIsActive;
         }
 
-        IeStatusOfFile(BinaryReader reader)
+        public IeStatusOfFile(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
             status = b1 & 0x1f;

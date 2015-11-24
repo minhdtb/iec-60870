@@ -21,7 +21,7 @@ namespace IEC60870.IE
             this.invalid = invalid;
         }
 
-        IeBinaryCounterReading(BinaryReader reader)
+        public IeBinaryCounterReading(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
             int b2 = reader.ReadByte();

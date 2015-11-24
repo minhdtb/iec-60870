@@ -36,7 +36,7 @@ namespace IEC60870.IE
             value |= (int)commandState;
         }
 
-        IeDoubleCommand(BinaryReader reader) : base(reader)
+        public IeDoubleCommand(BinaryReader reader) : base(reader)
         {
         }
 

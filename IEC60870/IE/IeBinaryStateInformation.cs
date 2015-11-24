@@ -14,7 +14,7 @@ namespace IEC60870.IE
             this.value = value;
         }
 
-        IeBinaryStateInformation(BinaryReader reader)
+        public IeBinaryStateInformation(BinaryReader reader)
         {
             value = reader.ReadInt32();
         }

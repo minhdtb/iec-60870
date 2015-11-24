@@ -13,7 +13,7 @@ namespace IEC60870.IE
             this.value = value;
         }
 
-        IeShortFloat(BinaryReader reader)
+        public IeShortFloat(BinaryReader reader)
         {
             var data = reader.ReadByte() | (reader.ReadByte() << 8) | (reader.ReadByte() << 16) | (reader.ReadByte() << 24);
             byte[] bytes = BitConverter.GetBytes(data);

@@ -30,7 +30,7 @@ namespace IEC60870.IE
             }
         }
 
-        IeProtectionOutputCircuitInformation(BinaryReader reader)
+        public IeProtectionOutputCircuitInformation(BinaryReader reader)
         {
             value = reader.ReadByte();
         }

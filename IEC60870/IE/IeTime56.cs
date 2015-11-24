@@ -12,6 +12,7 @@ namespace IEC60870.IE
         public IeTime56(long timestamp, TimeZone timeZone, Boolean invalid)
         {
         }
+
         public IeTime56(long timestamp) : this(timestamp, TimeZone.CurrentTimeZone, false)
         {
         }
@@ -24,7 +25,7 @@ namespace IEC60870.IE
             }
         }
 
-        IeTime56(BinaryReader reader)
+        public IeTime56(BinaryReader reader)
         {
             value = reader.ReadBytes(7);
         }

@@ -15,7 +15,7 @@ namespace IEC60870.IE
             this.negativeConfirm = negativeConfirm;
         }
 
-        IeFileReadyQualifier(BinaryReader reader)
+        public IeFileReadyQualifier(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
             value = b1 & 0x7f;

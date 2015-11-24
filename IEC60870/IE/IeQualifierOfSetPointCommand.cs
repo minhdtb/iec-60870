@@ -15,7 +15,7 @@ namespace IEC60870.IE
             this.select = select;
         }
 
-        IeQualifierOfSetPointCommand(BinaryReader reader)
+        public IeQualifierOfSetPointCommand(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
             ql = b1 & 0x7f;

@@ -10,7 +10,7 @@ namespace IEC60870.IE
         {
         }
 
-        IeFixedTestBitPattern(BinaryReader reader)
+        public IeFixedTestBitPattern(BinaryReader reader)
         {
             if (reader.ReadByte() != 0x55 || reader.ReadByte() != 0xaa)
             {

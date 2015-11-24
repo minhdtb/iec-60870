@@ -22,7 +22,7 @@ namespace IEC60870.IE
             value[1] = (byte)(ms >> 8);
         }
 
-        IeTime16(BinaryReader reader)
+        public IeTime16(BinaryReader reader)
         {
             value = reader.ReadBytes(2);
         }

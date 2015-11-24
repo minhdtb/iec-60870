@@ -13,7 +13,7 @@ namespace IEC60870.IE
             this.value = value;
         }
 
-        IeChecksum(BinaryReader reader)
+        public IeChecksum(BinaryReader reader)
         {
             value = reader.ReadByte();
         }

@@ -20,7 +20,7 @@ namespace IEC60870.IE
             this.transientState = transientState;
         }
 
-        IeValueWithTransientState(BinaryReader reader)
+        public IeValueWithTransientState(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
 

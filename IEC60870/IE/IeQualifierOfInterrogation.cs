@@ -13,7 +13,7 @@ namespace IEC60870.IE
             this.value = value;
         }
 
-        IeQualifierOfInterrogation(BinaryReader reader)
+        public IeQualifierOfInterrogation(BinaryReader reader)
         {
             value = reader.ReadByte();
         }

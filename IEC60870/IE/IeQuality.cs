@@ -14,7 +14,7 @@ namespace IEC60870.IE
             }
         }
 
-        IeQuality(BinaryReader reader) : base(reader)
+        public IeQuality(BinaryReader reader) : base(reader)
         {
         }
 

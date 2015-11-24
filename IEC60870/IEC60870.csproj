@@ -40,8 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\ConnectionSettings.cs" />
-    <Compile Include="Classes\TypeId.cs" />
+    <Compile Include="Connection\Connection.cs" />
+    <Compile Include="Connection\ConnectionEventListener.cs" />
+    <Compile Include="Connection\ConnectionSettings.cs" />
+    <Compile Include="Enum\CauseOfTransmission.cs" />
+    <Compile Include="Enum\TypeId.cs" />
     <Compile Include="IE\IeProtectionQuality.cs" />
     <Compile Include="IE\IeBinaryStateInformation.cs" />
     <Compile Include="IE\Base\IeAbstractQualifierOfCommand.cs" />
@@ -85,7 +88,10 @@
     <Compile Include="IE\IeTime16.cs" />
     <Compile Include="IE\IeTime56.cs" />
     <Compile Include="IE\IeValueWithTransientState.cs" />
-    <Compile Include="Classes\InformationObject.cs" />
+    <Compile Include="Object\APdu.cs" />
+    <Compile Include="Object\ASdu.cs" />
+    <Compile Include="Object\InformationObject.cs" />
+    <Compile Include="Util\ThreadBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

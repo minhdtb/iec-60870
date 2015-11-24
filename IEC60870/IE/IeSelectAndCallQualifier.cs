@@ -15,7 +15,7 @@ namespace IEC60870.IE
             this.notice = notice;
         }
 
-        IeSelectAndCallQualifier(BinaryReader reader)
+        public IeSelectAndCallQualifier(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
             action = b1 & 0x0f;

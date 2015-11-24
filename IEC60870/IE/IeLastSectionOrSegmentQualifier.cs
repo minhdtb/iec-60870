@@ -13,7 +13,7 @@ namespace IEC60870.IE
             this.value = value;
         }
 
-        IeLastSectionOrSegmentQualifier(BinaryReader reader)
+        public IeLastSectionOrSegmentQualifier(BinaryReader reader)
         {
             value = reader.ReadByte();
         }

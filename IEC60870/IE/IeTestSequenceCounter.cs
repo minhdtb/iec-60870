@@ -17,7 +17,7 @@ namespace IEC60870.IE
             this.value = value;
         }
 
-        IeTestSequenceCounter(BinaryReader reader)
+        public IeTestSequenceCounter(BinaryReader reader)
         {
             value = reader.ReadByte() | (reader.ReadByte() << 8);
         }

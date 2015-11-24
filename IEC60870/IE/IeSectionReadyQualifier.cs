@@ -15,7 +15,7 @@ namespace IEC60870.IE
             this.sectionNotReady = sectionNotReady;
         }
 
-        IeSectionReadyQualifier(BinaryReader reader)
+        public IeSectionReadyQualifier(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
             value = b1 & 0x7f;

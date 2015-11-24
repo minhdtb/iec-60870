@@ -15,7 +15,7 @@ namespace IEC60870.IE
             this.freeze = freeze;
         }
 
-        IeQualifierOfCounterInterrogation(BinaryReader reader)
+        public IeQualifierOfCounterInterrogation(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
             request = b1 & 0x3f;

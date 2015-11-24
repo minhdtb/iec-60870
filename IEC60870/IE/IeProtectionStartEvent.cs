@@ -39,7 +39,7 @@ namespace IEC60870.IE
             }
         }
 
-        IeProtectionStartEvent(BinaryReader reader)
+        public IeProtectionStartEvent(BinaryReader reader)
         {
             value = reader.ReadByte();
         }

@@ -14,7 +14,7 @@ namespace IEC60870.IE
             }
         }
 
-        IeSingleCommand(BinaryReader reader) : base(reader)
+        public IeSingleCommand(BinaryReader reader) : base(reader)
         {
         }
 

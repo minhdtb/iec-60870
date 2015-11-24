@@ -20,7 +20,7 @@ namespace IEC60870.IE
             this.initAfterParameterChange = initAfterParameterChange;
         }
 
-        IeCauseOfInitialization(BinaryReader reader)
+        public IeCauseOfInitialization(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
 

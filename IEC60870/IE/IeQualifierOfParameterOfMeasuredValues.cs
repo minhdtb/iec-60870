@@ -17,7 +17,7 @@ namespace IEC60870.IE
             this.notInOperation = notInOperation;
         }
 
-        IeQualifierOfParameterOfMeasuredValues(BinaryReader reader)
+        public IeQualifierOfParameterOfMeasuredValues(BinaryReader reader)
         {
             int b1 = reader.ReadByte();
             kindOfParameter = b1 & 0x3f;

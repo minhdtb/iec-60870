@@ -17,7 +17,7 @@ namespace IEC60870.IE
             this.length = length;
         }
 
-        IeFileSegment(BinaryReader reader)
+        public IeFileSegment(BinaryReader reader)
         {
             length = reader.ReadByte();            
             segment = reader.ReadBytes(length);

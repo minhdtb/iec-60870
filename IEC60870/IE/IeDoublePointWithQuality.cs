@@ -33,7 +33,7 @@ namespace IEC60870.IE
             }
         }
 
-        IeDoublePointWithQuality(BinaryReader reader) : base(reader)
+        public IeDoublePointWithQuality(BinaryReader reader) : base(reader)
         {
         }
 

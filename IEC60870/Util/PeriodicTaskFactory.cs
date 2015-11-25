@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace IEC60870.Util
 {
-    public static class PeriodicTaskFactory
+    public class PeriodicTaskFactory
     {        
         public static CancellationTokenSource Start(Action action, int delay)
         {

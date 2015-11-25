@@ -6,6 +6,7 @@ using IEC60870.Util;
 using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IEC60870.Connection
@@ -39,13 +40,13 @@ namespace IEC60870.Connection
         private static byte[] STARTDT_ACT_BUFFER = new byte[] { 0x68, 0x04, 0x07, 0x00, 0x00, 0x00 };
         private static byte[] STARTDT_CON_BUFFER = new byte[] { 0x68, 0x04, 0x0b, 0x00, 0x00, 0x00 };
 
-        private Task maxTimeNoAckSentFuture = null;
+        private CancellationTokenSource maxTimeNoAckSentFuture = null;
 
-        private Task maxTimeNoAckReceivedFuture = null;
+        private CancellationTokenSource maxTimeNoAckReceivedFuture = null;
 
-        private Task maxIdleTimeTimerFuture = null;
+        private CancellationTokenSource maxIdleTimeTimerFuture = null;
 
-        private Task maxTimeNoTestConReceivedFuture = null;
+        private CancellationTokenSource maxTimeNoTestConReceivedFuture = null;
 
         private class ConnectionReader : ThreadBase
         {

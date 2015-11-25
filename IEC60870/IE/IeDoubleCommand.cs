@@ -47,7 +47,7 @@ namespace IEC60870.IE
 
         public override string ToString()
         {
-            return "Double Command state: " + getCommandState() + ", " + base.ToString();
+            return "Double command state: " + getCommandState() + ", " + base.ToString();
         }
     }
 }

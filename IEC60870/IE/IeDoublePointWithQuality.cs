@@ -54,7 +54,7 @@ namespace IEC60870.IE
 
         public override string ToString()
         {
-            return "Double Point: " + getDoublePointInformation() + ", " + base.ToString();
+            return "Double point: " + getDoublePointInformation() + ", " + base.ToString();
         }
     }
 }

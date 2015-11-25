@@ -53,7 +53,7 @@ namespace IEC60870.IE
                 sb.Insert(0, '0'); // pad with leading zero if needed
             }
 
-            return "BinaryStateInformation (first bit = LSB): " + sb.ToString();
+            return "Binary state information (first bit = LSB): " + sb.ToString();
         }
     }
 }

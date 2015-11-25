@@ -32,7 +32,7 @@ namespace IEC60870.IE
             return value;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Length of file or section: " + value;
         }

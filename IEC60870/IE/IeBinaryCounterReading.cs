@@ -8,11 +8,11 @@ namespace IEC60870.IE
     {
         private int counterReading;
         private int sequenceNumber;
-        private Boolean carry;
-        private Boolean counterAdjusted;
-        private Boolean invalid;
+        private bool carry;
+        private bool counterAdjusted;
+        private bool invalid;
 
-        public IeBinaryCounterReading(int counterReading, int sequenceNumber, Boolean carry, Boolean counterAdjusted, Boolean invalid)
+        public IeBinaryCounterReading(int counterReading, int sequenceNumber, bool carry, bool counterAdjusted, bool invalid)
         {
             this.counterReading = counterReading;
             this.sequenceNumber = sequenceNumber;
@@ -72,22 +72,22 @@ namespace IEC60870.IE
             return sequenceNumber;
         }
 
-        public Boolean isCarry()
+        public bool isCarry()
         {
             return carry;
         }
 
-        public Boolean isCounterAdjusted()
+        public bool isCounterAdjusted()
         {
             return counterAdjusted;
         }
 
-        public Boolean isInvalid()
+        public bool isInvalid()
         {
             return invalid;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Binary counter reading: " + counterReading + ", seq num: " + sequenceNumber + ", carry: " + carry
                     + ", counter adjusted: " + counterAdjusted + ", invalid: " + invalid;

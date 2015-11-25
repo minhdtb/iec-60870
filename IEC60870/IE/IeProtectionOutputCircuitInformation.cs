@@ -8,7 +8,7 @@ namespace IEC60870.IE
     {
         private int value;
 
-        public IeProtectionOutputCircuitInformation(Boolean generalCommand, Boolean commandToL1, Boolean commandToL2, Boolean commandToL3)
+        public IeProtectionOutputCircuitInformation(bool generalCommand, bool commandToL1, bool commandToL2, bool commandToL3)
         {
             value = 0;
 
@@ -42,27 +42,27 @@ namespace IEC60870.IE
             return 1;
         }
 
-        public Boolean isGeneralCommand()
+        public bool isGeneralCommand()
         {
             return (value & 0x01) == 0x01;
         }
 
-        public Boolean isCommandToL1()
+        public bool isCommandToL1()
         {
             return (value & 0x02) == 0x02;
         }
 
-        public Boolean isCommandToL2()
+        public bool isCommandToL2()
         {
             return (value & 0x04) == 0x04;
         }
 
-        public Boolean isCommandToL3()
+        public bool isCommandToL3()
         {
             return (value & 0x08) == 0x08;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Protection output circuit information, general command: " + isGeneralCommand() + ", command to L1: "
                     + isCommandToL1() + ", command to L2: " + isCommandToL2() + ", command to L3: " + isCommandToL3();

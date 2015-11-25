@@ -13,8 +13,8 @@ namespace IEC60870.IE
             INDETERMINATE, OFF, ON
         }
 
-        public IeSingleProtectionEvent(EventState eventState, Boolean elapsedTimeInvalid, Boolean blocked,
-                Boolean substituted, Boolean notTopical, Boolean eventInvalid)
+        public IeSingleProtectionEvent(EventState eventState, bool elapsedTimeInvalid, bool blocked,
+                bool substituted, bool notTopical, bool eventInvalid)
         {
             value = 0;
 
@@ -76,32 +76,32 @@ namespace IEC60870.IE
             }
         }
 
-        public Boolean isElapsedTimeInvalid()
+        public bool isElapsedTimeInvalid()
         {
             return (value & 0x08) == 0x08;
         }
 
-        public Boolean isBlocked()
+        public bool isBlocked()
         {
             return (value & 0x10) == 0x10;
         }
 
-        public Boolean isSubstituted()
+        public bool isSubstituted()
         {
             return (value & 0x20) == 0x20;
         }
 
-        public Boolean isNotTopical()
+        public bool isNotTopical()
         {
             return (value & 0x40) == 0x40;
         }
 
-        public Boolean isEventInvalid()
+        public bool isEventInvalid()
         {
             return (value & 0x80) == 0x80;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Single protection event, elapsed time invalid: " + isElapsedTimeInvalid() + ", blocked: " + isBlocked()
                     + ", substituted: " + isSubstituted() + ", not topical: " + isNotTopical() + ", event invalid: "

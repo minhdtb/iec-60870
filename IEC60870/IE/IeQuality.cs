@@ -6,7 +6,7 @@ namespace IEC60870.IE
 {
     public class IeQuality : IeAbstractQuality
     {
-        public IeQuality(Boolean overflow, Boolean blocked, Boolean substituted, Boolean notTopical, Boolean invalid) : base(blocked, substituted, notTopical, invalid)
+        public IeQuality(bool overflow, bool blocked, bool substituted, bool notTopical, bool invalid) : base(blocked, substituted, notTopical, invalid)
         {
             if (overflow)
             {
@@ -18,12 +18,12 @@ namespace IEC60870.IE
         {
         }
 
-        public Boolean isOverflow() 
+        public bool isOverflow() 
         {
             return (value & 0x01) == 0x01;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Quality, overflow: " + isOverflow() + ", " + base.ToString();
         }

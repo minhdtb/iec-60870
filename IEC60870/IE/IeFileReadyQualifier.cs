@@ -7,9 +7,9 @@ namespace IEC60870.IE
     public class IeFileReadyQualifier : InformationElement
     {
         private int value;
-        private Boolean negativeConfirm;
+        private bool negativeConfirm;
 
-        public IeFileReadyQualifier(int value, Boolean negativeConfirm)
+        public IeFileReadyQualifier(int value, bool negativeConfirm)
         {
             this.value = value;
             this.negativeConfirm = negativeConfirm;
@@ -37,12 +37,12 @@ namespace IEC60870.IE
             return value;
         }
 
-        public Boolean isNegativeConfirm()
+        public bool isNegativeConfirm()
         {
             return negativeConfirm;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "File ready qualifier: " + value + ", negative confirm: " + negativeConfirm;
         }

@@ -7,9 +7,9 @@ namespace IEC60870.IE
     public class IeValueWithTransientState : InformationElement
     {
         private long value;
-        private Boolean transientState;
+        private bool transientState;
 
-        public IeValueWithTransientState(int value, Boolean transientState)
+        public IeValueWithTransientState(int value, bool transientState)
         {
             if (value < -64 || value > 63)
             {
@@ -56,12 +56,12 @@ namespace IEC60870.IE
             return value;
         }
 
-        public Boolean isTransientState()
+        public bool isTransientState()
         {
             return transientState;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Value with transient state, value: " + getValue() + ", transient state: " + isTransientState();
         }

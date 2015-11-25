@@ -31,7 +31,7 @@ namespace IEC60870.IE
             }
         }
 
-        public IeDoubleCommand(DoubleCommandState commandState, int qualifier, Boolean select) : base(qualifier, select)
+        public IeDoubleCommand(DoubleCommandState commandState, int qualifier, bool select) : base(qualifier, select)
         {
             value |= (int)commandState;
         }
@@ -45,7 +45,7 @@ namespace IEC60870.IE
             return createDoubleCommandState(value & 0x03);
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Double Command state: " + getCommandState() + ", " + base.ToString();
         }

@@ -14,8 +14,8 @@ namespace IEC60870.IE
             INDETERMINATE
         }
 
-        public IeDoublePointWithQuality(DoublePointInformation dpi, Boolean blocked, Boolean substituted,
-                Boolean notTopical, Boolean invalid) : base(blocked, substituted, notTopical, invalid)
+        public IeDoublePointWithQuality(DoublePointInformation dpi, bool blocked, bool substituted,
+                bool notTopical, bool invalid) : base(blocked, substituted, notTopical, invalid)
         {
             switch (dpi)
             {
@@ -52,7 +52,7 @@ namespace IEC60870.IE
             }
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Double Point: " + getDoublePointInformation() + ", " + base.ToString();
         }

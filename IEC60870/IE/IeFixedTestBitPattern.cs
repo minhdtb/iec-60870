@@ -25,7 +25,7 @@ namespace IEC60870.IE
             return 2;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Fixed test bit pattern";
         }

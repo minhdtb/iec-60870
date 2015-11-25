@@ -7,7 +7,7 @@ namespace IEC60870.IE.Base
     {
         protected int value;
 
-        public IeAbstractQuality(Boolean blocked, Boolean substituted, Boolean notTopical, Boolean invalid)
+        public IeAbstractQuality(bool blocked, bool substituted, bool notTopical, bool invalid)
         {
             value = 0;
 
@@ -40,27 +40,27 @@ namespace IEC60870.IE.Base
             return 1;
         }
 
-        public Boolean isBlocked()
+        public bool isBlocked()
         {
             return (value & 0x10) == 0x10;
         }
 
-        public Boolean isSubstituted()
+        public bool isSubstituted()
         {
             return (value & 0x20) == 0x20;
         }
 
-        public Boolean isNotTopical()
+        public bool isNotTopical()
         {
             return (value & 0x40) == 0x40;
         }
 
-        public Boolean isInvalid()
+        public bool isInvalid()
         {
             return (value & 0x80) == 0x80;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "blocked: " + isBlocked() + ", substituted: " + isSubstituted() + ", not topical: " + isNotTopical()
                     + ", invalid: " + isInvalid();

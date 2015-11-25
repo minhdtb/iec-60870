@@ -38,7 +38,7 @@ namespace IEC60870.IE
             return notice;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Acknowledge file or section qualifier, action: " + action + ", notice: " + notice;
         }

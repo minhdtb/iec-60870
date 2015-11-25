@@ -9,7 +9,7 @@ namespace IEC60870.IE
     {
         private byte[] value = new byte[7];
 
-        public IeTime56(long timestamp, TimeZone timeZone, Boolean invalid)
+        public IeTime56(long timestamp, TimeZone timeZone, bool invalid)
         {
             var datetime = new DateTime(timestamp);
             int ms = datetime.Millisecond + 1000 * datetime.Second;
@@ -116,17 +116,17 @@ namespace IEC60870.IE
             return value[6] & 0x7f;
         }
 
-        public Boolean isSummerTime()
+        public bool isSummerTime()
         {
             return (value[3] & 0x80) == 0x80;
         }
 
-        public Boolean isInvalid()
+        public bool isInvalid()
         {
             return (value[2] & 0x80) == 0x80;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             StringBuilder builder = new StringBuilder("Time56: ");
             appendWithNumDigits(builder, getDayOfMonth(), 2);

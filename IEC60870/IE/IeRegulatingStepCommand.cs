@@ -31,7 +31,7 @@ namespace IEC60870.IE
             }
         }
 
-        public IeRegulatingStepCommand(StepCommandState commandState, int qualifier, Boolean select) : base(qualifier, select)
+        public IeRegulatingStepCommand(StepCommandState commandState, int qualifier, bool select) : base(qualifier, select)
         {
             value |= (int)commandState;
         }
@@ -45,7 +45,7 @@ namespace IEC60870.IE
             return createStepCommandState(value & 0x03);
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Regulating step command state: " + getCommandState() + ", " + base.ToString();
         }

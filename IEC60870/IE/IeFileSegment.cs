@@ -38,7 +38,7 @@ namespace IEC60870.IE
             return segment;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "File segment of length: " + length;
         }

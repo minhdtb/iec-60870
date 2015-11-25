@@ -7,9 +7,9 @@ namespace IEC60870.IE
     public class IeQualifierOfSetPointCommand : InformationElement
     {
         private int ql;
-        private Boolean select;
+        private bool select;
 
-        public IeQualifierOfSetPointCommand(int ql, Boolean select)
+        public IeQualifierOfSetPointCommand(int ql, bool select)
         {
             this.ql = ql;
             this.select = select;
@@ -37,12 +37,12 @@ namespace IEC60870.IE
             return ql;
         }
 
-        public Boolean isSelect()
+        public bool isSelect()
         {
             return select;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Qualifier of set point command, QL: " + ql + ", select: " + select;
         }

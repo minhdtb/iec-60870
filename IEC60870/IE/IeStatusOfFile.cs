@@ -7,12 +7,12 @@ namespace IEC60870.IE
     public class IeStatusOfFile : InformationElement
     {
         private int status;
-        private Boolean lastFileOfDirectory;
-        private Boolean nameDefinesDirectory;
-        private Boolean transferIsActive;
+        private bool lastFileOfDirectory;
+        private bool nameDefinesDirectory;
+        private bool transferIsActive;
 
-        public IeStatusOfFile(int status, Boolean lastFileOfDirectory, Boolean nameDefinesDirectory,
-                Boolean transferIsActive)
+        public IeStatusOfFile(int status, bool lastFileOfDirectory, bool nameDefinesDirectory,
+                bool transferIsActive)
         {
             this.status = status;
             this.lastFileOfDirectory = lastFileOfDirectory;
@@ -52,22 +52,22 @@ namespace IEC60870.IE
             return status;
         }
 
-        public Boolean isLastFileOfDirectory()
+        public bool isLastFileOfDirectory()
         {
             return lastFileOfDirectory;
         }
 
-        public Boolean isNameDefinesDirectory()
+        public bool isNameDefinesDirectory()
         {
             return nameDefinesDirectory;
         }
 
-        public Boolean isTransferIsActive()
+        public bool isTransferIsActive()
         {
             return transferIsActive;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Status of file: " + status + ", last file of directory: " + lastFileOfDirectory
                     + ", name defines directory: " + nameDefinesDirectory + ", transfer is active: " + transferIsActive;

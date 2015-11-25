@@ -425,7 +425,7 @@ namespace IEC60870.Object
             return informationElements;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             StringBuilder builder = new StringBuilder("IOA: " + informationObjectAddress);
 

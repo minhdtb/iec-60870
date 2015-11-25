@@ -10,19 +10,19 @@ namespace IEC60870.Object
     {
         private TypeId typeId;
 
-        public Boolean isSequenceOfElements;
+        public bool isSequenceOfElements;
 
         private CauseOfTransmission causeOfTransmission;
-        private Boolean test;
-        private Boolean negativeConfirm;
+        private bool test;
+        private bool negativeConfirm;
         private int originatorAddress;
         private int commonAddress;
         private InformationObject[] informationObjects;
         private byte[] privateInformation;
         private int sequenceLength;
 
-        public ASdu(TypeId typeId, Boolean isSequenceOfElements, CauseOfTransmission causeOfTransmission, Boolean test,
-            Boolean negativeConfirm, int originatorAddress, int commonAddress, InformationObject[] informationObjects)
+        public ASdu(TypeId typeId, bool isSequenceOfElements, CauseOfTransmission causeOfTransmission, bool test,
+            bool negativeConfirm, int originatorAddress, int commonAddress, InformationObject[] informationObjects)
         {
             this.typeId = typeId;
             this.isSequenceOfElements = isSequenceOfElements;
@@ -44,8 +44,8 @@ namespace IEC60870.Object
             }
         }
 
-        public ASdu(TypeId typeId, Boolean isSequenceOfElements, int sequenceLength,
-            CauseOfTransmission causeOfTransmission, Boolean test, Boolean negativeConfirm, int originatorAddress,
+        public ASdu(TypeId typeId, bool isSequenceOfElements, int sequenceLength,
+            CauseOfTransmission causeOfTransmission, bool test, bool negativeConfirm, int originatorAddress,
             int commonAddress, byte[] privateInformation)
         {
 
@@ -146,12 +146,12 @@ namespace IEC60870.Object
             return causeOfTransmission;
         }
 
-        public Boolean isTestFrame()
+        public bool isTestFrame()
         {
             return test;
         }
 
-        public Boolean isNegativeConfirm()
+        public bool isNegativeConfirm()
         {
             return negativeConfirm;
         }
@@ -241,9 +241,10 @@ namespace IEC60870.Object
             return i - origi;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
-            StringBuilder builder = new StringBuilder("Type ID: " + (int)typeId + "\nCause of transmission: " + causeOfTransmission + ", test: "
+            StringBuilder builder = new StringBuilder("Type ID: " + (int)typeId + ", " + Description.GetAttr(typeId).Name +
+                    "\nCause of transmission: " + causeOfTransmission + ", test: "
                     + isTestFrame() + ", negative con: " + isNegativeConfirm() + "\nOriginator address: "
                     + originatorAddress + ", Common address: " + commonAddress);
 
@@ -271,7 +272,7 @@ namespace IEC60870.Object
                     }
                     l++;
                     builder.Append("0x");
-                    String hexString = (b & 0xff).ToString("X");
+                    string hexString = (b & 0xff).ToString("X");
                     if (hexString.Length == 1)
                     {
                         builder.Append(0);

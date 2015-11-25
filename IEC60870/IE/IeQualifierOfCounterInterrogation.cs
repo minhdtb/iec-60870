@@ -38,7 +38,7 @@ namespace IEC60870.IE
             return freeze;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Qualifier of counter interrogation, request: " + request + ", freeze: " + freeze;
         }

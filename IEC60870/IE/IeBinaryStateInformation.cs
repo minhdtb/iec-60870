@@ -33,7 +33,7 @@ namespace IEC60870.IE
             return value;
         }
 
-        public Boolean getBinaryState(int position)
+        public bool getBinaryState(int position)
         {
             if (position < 1 || position > 32)
             {
@@ -43,7 +43,7 @@ namespace IEC60870.IE
             return (((value >> (position - 1)) & 0x01) == 0x01);
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
 

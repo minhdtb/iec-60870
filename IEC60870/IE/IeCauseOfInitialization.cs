@@ -7,9 +7,9 @@ namespace IEC60870.IE
     public class IeCauseOfInitialization : InformationElement
     {
         private int value;
-        private Boolean initAfterParameterChange;
+        private bool initAfterParameterChange;
 
-        public IeCauseOfInitialization(int value, Boolean initAfterParameterChange)
+        public IeCauseOfInitialization(int value, bool initAfterParameterChange)
         {
             if (value < 0 || value > 127)
             {
@@ -48,12 +48,12 @@ namespace IEC60870.IE
             return value;
         }
 
-        public Boolean isInitAfterParameterChange()
+        public bool isInitAfterParameterChange()
         {
             return initAfterParameterChange;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Cause of initialization: " + value + ", init after parameter change: " + initAfterParameterChange;
         }

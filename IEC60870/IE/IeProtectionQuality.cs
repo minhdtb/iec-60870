@@ -6,8 +6,8 @@ namespace IEC60870.IE
 {
     public class IeProtectionQuality : IeAbstractQuality
     {
-        public IeProtectionQuality(Boolean elapsedTimeInvalid, Boolean blocked, Boolean substituted, Boolean notTopical,
-            Boolean invalid) : base(blocked, substituted, notTopical, invalid)
+        public IeProtectionQuality(bool elapsedTimeInvalid, bool blocked, bool substituted, bool notTopical,
+            bool invalid) : base(blocked, substituted, notTopical, invalid)
         {
             if (elapsedTimeInvalid)
             {
@@ -19,12 +19,12 @@ namespace IEC60870.IE
         {
         }
 
-        public Boolean isElapsedTimeInvalid()
+        public bool isElapsedTimeInvalid()
         {
             return (value & 0x08) == 0x08;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Protection Quality, elapsed time invalid: " + isElapsedTimeInvalid() + ", " + base.ToString();
         }

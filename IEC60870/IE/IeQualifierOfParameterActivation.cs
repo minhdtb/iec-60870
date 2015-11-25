@@ -29,7 +29,7 @@ namespace IEC60870.IE
             return value;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Qualifier of parameter activation: " + value;
         }

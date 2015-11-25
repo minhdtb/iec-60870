@@ -7,9 +7,9 @@ namespace IEC60870.IE
     public class IeSectionReadyQualifier : InformationElement
     {
         private int value;
-        private Boolean sectionNotReady;
+        private bool sectionNotReady;
 
-        public IeSectionReadyQualifier(int value, Boolean sectionNotReady)
+        public IeSectionReadyQualifier(int value, bool sectionNotReady)
         {
             this.value = value;
             this.sectionNotReady = sectionNotReady;
@@ -37,12 +37,12 @@ namespace IEC60870.IE
             return value;
         }
 
-        public Boolean isSectionNotReady()
+        public bool isSectionNotReady()
         {
             return sectionNotReady;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Section ready qualifier: " + value + ", section not ready: " + sectionNotReady;
         }

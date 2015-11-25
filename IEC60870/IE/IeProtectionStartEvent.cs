@@ -8,8 +8,8 @@ namespace IEC60870.IE
     {
         private int value;
 
-        public IeProtectionStartEvent(Boolean generalStart, Boolean startOperationL1, Boolean startOperationL2,
-                Boolean startOperationL3, Boolean startOperationIe, Boolean startReverseOperation)
+        public IeProtectionStartEvent(bool generalStart, bool startOperationL1, bool startOperationL2,
+                bool startOperationL3, bool startOperationIe, bool startReverseOperation)
         {
             value = 0;
 
@@ -50,37 +50,37 @@ namespace IEC60870.IE
             return 1;
         }
 
-        public Boolean isGeneralStart()
+        public bool isGeneralStart()
         {
             return (value & 0x01) == 0x01;
         }
 
-        public Boolean isStartOperationL1()
+        public bool isStartOperationL1()
         {
             return (value & 0x02) == 0x02;
         }
 
-        public Boolean isStartOperationL2()
+        public bool isStartOperationL2()
         {
             return (value & 0x04) == 0x04;
         }
 
-        public Boolean isStartOperationL3()
+        public bool isStartOperationL3()
         {
             return (value & 0x08) == 0x08;
         }
 
-        public Boolean isStartOperationIe()
+        public bool isStartOperationIe()
         {
             return (value & 0x10) == 0x10;
         }
 
-        public Boolean isStartReverseOperation()
+        public bool isStartReverseOperation()
         {
             return (value & 0x20) == 0x20;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Protection start event, general start of operation: " + isGeneralStart() + ", start of operation L1: "
                     + isStartOperationL1() + ", start of operation L2: " + isStartOperationL2()

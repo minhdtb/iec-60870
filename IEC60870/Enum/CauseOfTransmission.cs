@@ -1,4 +1,6 @@
-﻿namespace IEC60870.Enum
+﻿using System;
+
+namespace IEC60870.Enum
 {
     public enum CauseOfTransmission
     {

@@ -13,7 +13,7 @@ namespace IEC60870.IE
         {
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Scaled value: " + value;
         }

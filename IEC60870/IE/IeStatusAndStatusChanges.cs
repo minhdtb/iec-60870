@@ -33,7 +33,7 @@ namespace IEC60870.IE
             return value;
         }
 
-        public Boolean getStatus(int position)
+        public bool getStatus(int position)
         {
             if (position < 1 || position > 16)
             {
@@ -43,7 +43,7 @@ namespace IEC60870.IE
             return (((value >> (position - 17)) & 0x01) == 0x01);
         }
 
-        public Boolean hasStatusChanged(int position)
+        public bool hasStatusChanged(int position)
         {
             if (position < 1 || position > 16)
             {
@@ -52,7 +52,7 @@ namespace IEC60870.IE
             return (((value >> (position - 1)) & 0x01) == 0x01);
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             StringBuilder sb1 = new StringBuilder();
             sb1.Append(((uint)value >> 16).ToString("X"));

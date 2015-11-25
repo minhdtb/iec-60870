@@ -7,7 +7,7 @@ namespace IEC60870.IE.Base
     {
         protected int value;
 
-        public IeAbstractQualifierOfCommand(int qualifier, Boolean select)
+        public IeAbstractQualifierOfCommand(int qualifier, bool select)
         {
             if (qualifier < 0 || qualifier > 31)
             {
@@ -33,7 +33,7 @@ namespace IEC60870.IE.Base
             return 1;
         }
 
-        public Boolean isSelect()
+        public bool isSelect()
         {
             return (value & 0x80) == 0x80;
         }
@@ -43,7 +43,7 @@ namespace IEC60870.IE.Base
             return (value >> 2) & 0x1f;
         }
         
-        public override String ToString()
+        public override string ToString()
         {
             return "selected: " + isSelect() + ", qualifier: " + getQualifier();
         }

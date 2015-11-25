@@ -6,7 +6,7 @@ namespace IEC60870.IE
 {
     public class IeSingleCommand : IeAbstractQualifierOfCommand
     {
-        public IeSingleCommand(Boolean commandStateOn, int qualifier, Boolean select) : base(qualifier, select)
+        public IeSingleCommand(bool commandStateOn, int qualifier, bool select) : base(qualifier, select)
         {
             if (commandStateOn)
             {
@@ -18,12 +18,12 @@ namespace IEC60870.IE
         {
         }
 
-        public Boolean isCommandStateOn()
+        public bool isCommandStateOn()
         {
             return (value & 0x01) == 0x01;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Single Command state on: " + isCommandStateOn() + ", " + base.ToString();
         }

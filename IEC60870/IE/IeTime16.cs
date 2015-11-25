@@ -40,7 +40,7 @@ namespace IEC60870.IE
             return (value[0] & 0xff) + ((value[1] & 0xff) << 8);
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Time16, time in ms: " + getTimeInMs();
         }

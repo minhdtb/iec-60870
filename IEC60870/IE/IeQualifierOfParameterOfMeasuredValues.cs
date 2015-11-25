@@ -7,10 +7,10 @@ namespace IEC60870.IE
     public class IeQualifierOfParameterOfMeasuredValues : InformationElement
     {
         private int kindOfParameter;
-        private Boolean change;
-        private Boolean notInOperation;
+        private bool change;
+        private bool notInOperation;
 
-        public IeQualifierOfParameterOfMeasuredValues(int kindOfParameter, Boolean change, Boolean notInOperation)
+        public IeQualifierOfParameterOfMeasuredValues(int kindOfParameter, bool change, bool notInOperation)
         {
             this.kindOfParameter = kindOfParameter;
             this.change = change;
@@ -44,17 +44,17 @@ namespace IEC60870.IE
             return kindOfParameter;
         }
 
-        public Boolean isChange()
+        public bool isChange()
         {
             return change;
         }
 
-        public Boolean isNotInOperation()
+        public bool isNotInOperation()
         {
             return notInOperation;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Qualifier of parameter of measured values, kind of parameter: " + kindOfParameter + ", change: "
                     + change + ", not in operation: " + notInOperation;

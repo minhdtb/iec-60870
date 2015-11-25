@@ -14,7 +14,7 @@ namespace IEC60870.Connection
         private BinaryWriter writer;
         private BinaryReader reader;
 
-        private Boolean closed = false;
+        private bool closed = false;
 
         private ConnectionSettings settings;
 

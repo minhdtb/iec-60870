@@ -1,18 +1,22 @@
 ﻿using IEC60870.Connection;
+using IEC60870.Util;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace TestApp
 {
     class Program
     {
         static void Main(string[] args)
-        {
-            Socket socket = connect("127.0.0.1", 2404);
-            ConnectionSettings settings = new ConnectionSettings();
+        {            
             try
             {
+                Socket socket = connect("127.0.0.1", 2404);
+                ConnectionSettings settings = new ConnectionSettings();
+
                 Connection connection = new Connection(socket, settings);
 
                 connection.newASdu += (asdu) =>
@@ -30,7 +34,9 @@ namespace TestApp
             catch (Exception e)
             {
                 Console.WriteLine(e);
-            }               
+            }
+
+            Console.ReadLine();       
         }
 
         static Socket connect(String host, int port)

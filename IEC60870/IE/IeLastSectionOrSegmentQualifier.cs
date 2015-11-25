@@ -4,7 +4,7 @@ using System.IO;
 
 namespace IEC60870.IE
 {
-    class IeLastSectionOrSegmentQualifier : InformationElement
+    public class IeLastSectionOrSegmentQualifier : InformationElement
     {
         private int value;
 

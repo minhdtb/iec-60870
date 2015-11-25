@@ -24,7 +24,6 @@ namespace IEC60870.Object
         public ASdu(TypeId typeId, Boolean isSequenceOfElements, CauseOfTransmission causeOfTransmission, Boolean test,
             Boolean negativeConfirm, int originatorAddress, int commonAddress, InformationObject[] informationObjects)
         {
-
             this.typeId = typeId;
             this.isSequenceOfElements = isSequenceOfElements;
             this.causeOfTransmission = causeOfTransmission;

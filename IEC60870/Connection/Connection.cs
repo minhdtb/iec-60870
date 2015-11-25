@@ -17,7 +17,9 @@ namespace IEC60870.Connection
         private Boolean closed = false;
 
         private ConnectionSettings settings;
-        private ConnectionEventListener aSduListener = null;
+
+        public ConnectionEventListener.newASdu newASdu = null;
+        public ConnectionEventListener.connectionClosed connectionClosed = null;
 
         private int sendSequenceNumber = 0;
         private int receiveSequenceNumber = 0;
@@ -25,6 +27,7 @@ namespace IEC60870.Connection
         private int acknowledgedSendSequenceNumber = 0;
 
         private int originatorAddress = 0;
+        private IOException closedIOException = null;
 
         private byte[] buffer = new byte[255];
 
@@ -68,7 +71,10 @@ namespace IEC60870.Connection
                                 innerConnection.receiveSequenceNumber = (aPdu.getSendSeqNumber() + 1) % 32768;
                                 innerConnection.handleReceiveSequenceNumber(aPdu);
 
-                                Console.WriteLine("\nReceived ASDU:\n" + aPdu.getASdu().ToString());
+                                if (innerConnection.newASdu != null)
+                                {
+                                    innerConnection.newASdu(aPdu.getASdu());
+                                }                               
 
                                 int numUnconfirmedIPdusReceived = innerConnection.getSequenceNumberDifference(
                                     innerConnection.receiveSequenceNumber,
@@ -113,9 +119,22 @@ namespace IEC60870.Connection
                         }
                     }
                 }
-                catch (Exception e)
+                catch (IOException e)
                 {
-                    throw new IOException(e.Message);
+                    innerConnection.closedIOException = e;
+                }
+                catch(Exception e)
+                {
+                    innerConnection.closedIOException = new IOException(e.Message);
+                }
+                finally
+                {
+                    if (innerConnection.connectionClosed != null)
+                    {
+                        innerConnection.connectionClosed(innerConnection.closedIOException);
+                    }  
+
+                    innerConnection.close();
                 }
             }
         }
@@ -160,6 +179,7 @@ namespace IEC60870.Connection
                 }
                 catch (Exception e)
                 {
+                    throw new IOException(e.Message);
                 }
 
                 try
@@ -168,6 +188,7 @@ namespace IEC60870.Connection
                 }
                 catch (Exception e)
                 {
+                    throw new IOException(e.Message);
                 }
             }
         }
@@ -216,6 +237,7 @@ namespace IEC60870.Connection
             {
                 difference += 32768;
             }
+
             return difference;
         }
 

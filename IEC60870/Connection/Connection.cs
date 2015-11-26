@@ -6,8 +6,6 @@ using IEC60870.Util;
 using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace IEC60870.Connection
 {
@@ -40,13 +38,13 @@ namespace IEC60870.Connection
         private static byte[] STARTDT_ACT_BUFFER = new byte[] { 0x68, 0x04, 0x07, 0x00, 0x00, 0x00 };
         private static byte[] STARTDT_CON_BUFFER = new byte[] { 0x68, 0x04, 0x0b, 0x00, 0x00, 0x00 };
 
-        private CancellationTokenSource maxTimeNoAckSentFuture = null;
+        private RunTask maxTimeNoAckSentFuture = null;
 
-        private CancellationTokenSource maxTimeNoAckReceivedFuture = null;
+        private RunTask maxTimeNoAckReceivedFuture = null;
 
-        private CancellationTokenSource maxIdleTimeTimerFuture = null;
+        private RunTask maxIdleTimeTimerFuture = null;
 
-        private CancellationTokenSource maxTimeNoTestConReceivedFuture = null;
+        private RunTask maxTimeNoTestConReceivedFuture = null;
 
         private class ConnectionReader : ThreadBase
         {
@@ -726,10 +724,15 @@ namespace IEC60870.Connection
 
         private void scheduleMaxTimeNoTestConReceivedFuture()
         {
+            if (maxTimeNoTestConReceivedFuture != null)
+            {
+                maxTimeNoTestConReceivedFuture.Cancel();
+                maxTimeNoTestConReceivedFuture = null;
+            }
+
             maxTimeNoTestConReceivedFuture = PeriodicTaskFactory.Start(() =>
             {
-                close();
-                maxTimeNoTestConReceivedFuture = null;
+                close();                
                 if (connectionClosed != null)
                 {
                     connectionClosed(new IOException(
@@ -742,6 +745,12 @@ namespace IEC60870.Connection
 
         private void scheduleMaxTimeNoAckReceivedFuture()
         {
+            if (maxTimeNoAckReceivedFuture != null)
+            {
+                maxTimeNoAckReceivedFuture.Cancel();
+                maxTimeNoAckReceivedFuture = null;
+            }
+
             maxTimeNoAckReceivedFuture = PeriodicTaskFactory.Start(() =>
             {
                 close();

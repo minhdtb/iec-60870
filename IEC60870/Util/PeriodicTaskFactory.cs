@@ -4,18 +4,37 @@ using System.Threading.Tasks;
 
 namespace IEC60870.Util
 {
+    public class RunTask
+    {        
+        private CancellationTokenSource source;
+
+        public RunTask()
+        {
+            source = new CancellationTokenSource();
+        }
+
+        public CancellationToken GetToken()
+        {
+            return source.Token;
+        }
+
+        public void Cancel()
+        {
+            source.Cancel();
+        }
+    }
+
     public class PeriodicTaskFactory
     {        
-        public static CancellationTokenSource Start(Action action, int delay)
+        public static RunTask Start(Action action, int delay)
         {
-            var source = new CancellationTokenSource();
-            var token = source.Token;
-            var task = Task.Delay(delay, token);
-            task.ContinueWith((a) =>
+            var run = new RunTask();
+            var task = Task.Delay(delay, run.GetToken());
+            task.ContinueWith((t) =>
             {
                 try
                 {
-                    token.ThrowIfCancellationRequested();
+                    run.GetToken().ThrowIfCancellationRequested();
                     action();
                 }
                 catch (Exception)
@@ -23,7 +42,7 @@ namespace IEC60870.Util
                 }
             });
 
-            return source;
+            return run;
         }
     }
 }

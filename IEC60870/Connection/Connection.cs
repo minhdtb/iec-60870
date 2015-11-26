@@ -46,6 +46,9 @@ namespace IEC60870.Connection
 
         private RunTask maxTimeNoTestConReceivedFuture = null;
 
+        private CountDownLatch startdtactSignal;
+        private CountDownLatch startdtConSignal;
+
         private class ConnectionReader : ThreadBase
         {
             private Connection innerConnection;
@@ -111,9 +114,17 @@ namespace IEC60870.Connection
                                 innerConnection.resetMaxIdleTimeTimer();
                                 break;
                             case APdu.APCI_TYPE.STARTDT_CON:
+                                if (innerConnection.startdtConSignal != null)
+                                {
+                                    innerConnection.startdtConSignal.Signal();
+                                }
                                 innerConnection.resetMaxIdleTimeTimer();
                                 break;
                             case APdu.APCI_TYPE.STARTDT_ACT:
+                                if (innerConnection.startdtactSignal != null)
+                                {
+                                    innerConnection.startdtactSignal.Signal();
+                                }
                                 break;
                             case APdu.APCI_TYPE.S_FORMAT:
                                 innerConnection.handleReceiveSequenceNumber(aPdu);
@@ -166,6 +177,8 @@ namespace IEC60870.Connection
             writer = new BinaryWriter(ns);
             reader = new BinaryReader(ns);
 
+            startdtactSignal = new CountDownLatch(1);
+
             ConnectionReader connectionReader = new ConnectionReader(this);
             connectionReader.Start();
         }
@@ -196,10 +209,48 @@ namespace IEC60870.Connection
             }
         }
 
-        public void startDataTransfer()
+        public void startDataTransfer(int timeout = 0)
         {
+            if (timeout < 0)
+            {
+                throw new ArgumentException("timeout may not be negative");
+            }
+
+            startdtConSignal = new CountDownLatch(1);
+
             writer.Write(STARTDT_ACT_BUFFER, 0, STARTDT_ACT_BUFFER.Length);
             writer.Flush();
+
+            if (timeout == 0)
+            {
+                startdtConSignal.Wait();
+            }
+            else
+            {
+                startdtConSignal.Wait(timeout);           
+            }
+        }
+
+        public void waitForStartDT(int timeout = 0)
+        {
+            if (timeout < 0)
+            {
+                throw new ArgumentException("timeout may not be negative");
+            }
+
+            if (timeout == 0)
+            {
+                startdtactSignal.Wait();
+            }
+            else
+            {
+                startdtactSignal.Wait(timeout);
+            }
+
+            writer.Write(STARTDT_CON_BUFFER, 0, STARTDT_CON_BUFFER.Length);
+            writer.Flush();
+
+            resetMaxIdleTimeTimer();
         }
 
         public void send(ASdu aSdu)
@@ -732,7 +783,7 @@ namespace IEC60870.Connection
 
             maxTimeNoTestConReceivedFuture = PeriodicTaskFactory.Start(() =>
             {
-                close();                
+                close();
                 if (connectionClosed != null)
                 {
                     connectionClosed(new IOException(

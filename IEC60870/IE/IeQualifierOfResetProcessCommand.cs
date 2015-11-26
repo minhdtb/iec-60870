@@ -1,12 +1,11 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeQualifierOfResetProcessCommand : InformationElement
     {
-        private int value;
+        private readonly int value;
 
         public IeQualifierOfResetProcessCommand(int value)
         {
@@ -18,13 +17,13 @@ namespace IEC60870.IE
             value = reader.ReadByte();
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)value;
+            buffer[i] = (byte) value;
             return 1;
         }
 
-        public int getValue()
+        public int GetValue()
         {
             return value;
         }

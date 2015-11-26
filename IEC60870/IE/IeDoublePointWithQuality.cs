@@ -1,6 +1,5 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
@@ -8,27 +7,27 @@ namespace IEC60870.IE
     {
         public enum DoublePointInformation
         {
-            INDETERMINATE_OR_INTERMEDIATE,
-            OFF,
-            ON,
-            INDETERMINATE
+            IndeterminateOrIntermediate,
+            Off,
+            On,
+            Indeterminate
         }
 
         public IeDoublePointWithQuality(DoublePointInformation dpi, bool blocked, bool substituted,
-                bool notTopical, bool invalid) : base(blocked, substituted, notTopical, invalid)
+            bool notTopical, bool invalid) : base(blocked, substituted, notTopical, invalid)
         {
             switch (dpi)
             {
-                case DoublePointInformation.INDETERMINATE_OR_INTERMEDIATE:
+                case DoublePointInformation.IndeterminateOrIntermediate:
                     break;
-                case DoublePointInformation.OFF:
-                    value |= 0x01;
+                case DoublePointInformation.Off:
+                    Value |= 0x01;
                     break;
-                case DoublePointInformation.ON:
-                    value |= 0x02;
+                case DoublePointInformation.On:
+                    Value |= 0x02;
                     break;
-                case DoublePointInformation.INDETERMINATE:
-                    value |= 0x03;
+                case DoublePointInformation.Indeterminate:
+                    Value |= 0x03;
                     break;
             }
         }
@@ -37,24 +36,24 @@ namespace IEC60870.IE
         {
         }
 
-        public DoublePointInformation getDoublePointInformation()
+        public DoublePointInformation GetDoublePointInformation()
         {
-            switch (value & 0x03)
+            switch (Value & 0x03)
             {
                 case 0:
-                    return DoublePointInformation.INDETERMINATE_OR_INTERMEDIATE;
+                    return DoublePointInformation.IndeterminateOrIntermediate;
                 case 1:
-                    return DoublePointInformation.OFF;
+                    return DoublePointInformation.Off;
                 case 2:
-                    return DoublePointInformation.ON;
+                    return DoublePointInformation.On;
                 default:
-                    return DoublePointInformation.INDETERMINATE;
+                    return DoublePointInformation.Indeterminate;
             }
         }
 
         public override string ToString()
         {
-            return "Double point: " + getDoublePointInformation() + ", " + base.ToString();
+            return "Double point: " + GetDoublePointInformation() + ", " + base.ToString();
         }
     }
 }

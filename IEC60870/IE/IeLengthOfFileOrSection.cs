@@ -1,12 +1,11 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeLengthOfFileOrSection : InformationElement
     {
-        private int value;
+        private readonly int value;
 
         public IeLengthOfFileOrSection(int value)
         {
@@ -18,16 +17,16 @@ namespace IEC60870.IE
             value = reader.ReadByte() | (reader.ReadByte() << 8) | (reader.ReadByte() << 16);
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i++] = (byte)value;
-            buffer[i++] = (byte)(value >> 8);
-            buffer[i] = (byte)(value >> 16);
+            buffer[i++] = (byte) value;
+            buffer[i++] = (byte) (value >> 8);
+            buffer[i] = (byte) (value >> 16);
 
             return 3;
         }
 
-        public int getValue()
+        public int GetValue()
         {
             return value;
         }

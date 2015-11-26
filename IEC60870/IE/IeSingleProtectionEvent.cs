@@ -1,32 +1,31 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeSingleProtectionEvent : InformationElement
     {
-        private int value;
-
         public enum EventState
         {
-            INDETERMINATE, OFF, ON
+            Indeterminate,
+            Off,
+            On
         }
 
+        private readonly int value;
+
         public IeSingleProtectionEvent(EventState eventState, bool elapsedTimeInvalid, bool blocked,
-                bool substituted, bool notTopical, bool eventInvalid)
+            bool substituted, bool notTopical, bool eventInvalid)
         {
             value = 0;
 
             switch (eventState)
             {
-                case EventState.OFF:
+                case EventState.Off:
                     value |= 0x01;
                     break;
-                case EventState.ON:
+                case EventState.On:
                     value |= 0x02;
-                    break;
-                default:
                     break;
             }
 
@@ -57,56 +56,56 @@ namespace IEC60870.IE
             value = reader.ReadByte();
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)value;
+            buffer[i] = (byte) value;
             return 1;
         }
 
-        public EventState getEventState()
+        public EventState GetEventState()
         {
             switch (value & 0x03)
             {
                 case 1:
-                    return EventState.OFF;
+                    return EventState.Off;
                 case 2:
-                    return EventState.ON;
+                    return EventState.On;
                 default:
-                    return EventState.INDETERMINATE;
+                    return EventState.Indeterminate;
             }
         }
 
-        public bool isElapsedTimeInvalid()
+        public bool IsElapsedTimeInvalid()
         {
             return (value & 0x08) == 0x08;
         }
 
-        public bool isBlocked()
+        public bool IsBlocked()
         {
             return (value & 0x10) == 0x10;
         }
 
-        public bool isSubstituted()
+        public bool IsSubstituted()
         {
             return (value & 0x20) == 0x20;
         }
 
-        public bool isNotTopical()
+        public bool IsNotTopical()
         {
             return (value & 0x40) == 0x40;
         }
 
-        public bool isEventInvalid()
+        public bool IsEventInvalid()
         {
             return (value & 0x80) == 0x80;
         }
 
         public override string ToString()
         {
-            return "Single protection event, elapsed time invalid: " + isElapsedTimeInvalid() + ", blocked: " + isBlocked()
-                    + ", substituted: " + isSubstituted() + ", not topical: " + isNotTopical() + ", event invalid: "
-                    + isEventInvalid();
+            return "Single protection event, elapsed time invalid: " + IsElapsedTimeInvalid() + ", blocked: " +
+                   IsBlocked()
+                   + ", substituted: " + IsSubstituted() + ", not topical: " + IsNotTopical() + ", event invalid: "
+                   + IsEventInvalid();
         }
-
     }
 }

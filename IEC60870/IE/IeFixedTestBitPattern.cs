@@ -1,6 +1,5 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
@@ -18,10 +17,10 @@ namespace IEC60870.IE
             }
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
             buffer[i++] = 0x55;
-            buffer[i] = (byte)0xaa;
+            buffer[i] = 0xaa;
             return 2;
         }
 

@@ -1,13 +1,13 @@
-﻿using IEC60870.IE.Base;
-using System;
+﻿using System;
 using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeCauseOfInitialization : InformationElement
     {
-        private int value;
-        private bool initAfterParameterChange;
+        private readonly bool initAfterParameterChange;
+        private readonly int value;
 
         public IeCauseOfInitialization(int value, bool initAfterParameterChange)
         {
@@ -24,31 +24,31 @@ namespace IEC60870.IE
         {
             int b1 = reader.ReadByte();
 
-            initAfterParameterChange = ((b1 & 0x80) == 0x80);
+            initAfterParameterChange = (b1 & 0x80) == 0x80;
 
             value = b1 & 0x7f;
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
             if (initAfterParameterChange)
             {
-                buffer[i] = (byte)(value | 0x80);
+                buffer[i] = (byte) (value | 0x80);
             }
             else
             {
-                buffer[i] = (byte)value;
+                buffer[i] = (byte) value;
             }
 
             return 1;
         }
 
-        public int getValue()
+        public int GetValue()
         {
             return value;
         }
 
-        public bool isInitAfterParameterChange()
+        public bool IsInitAfterParameterChange()
         {
             return initAfterParameterChange;
         }

@@ -4,8 +4,8 @@ namespace IEC60870.Util
 {
     public class CountDownLatch
     {
+        private readonly EventWaitHandle @event;
         private int remain;
-        private EventWaitHandle @event;
 
         public CountDownLatch(int count)
         {
@@ -13,15 +13,15 @@ namespace IEC60870.Util
             @event = new ManualResetEvent(false);
         }
 
-        public void Signal()
-        {            
+        public void CountDown()
+        {
             if (Interlocked.Decrement(ref remain) == 0)
                 @event.Set();
         }
 
         public void Wait(int timeout)
         {
-            @event.WaitOne(timeout);            
+            @event.WaitOne(timeout);
         }
 
         public void Wait()

@@ -1,13 +1,12 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeFileReadyQualifier : InformationElement
     {
-        private int value;
-        private bool negativeConfirm;
+        private readonly bool negativeConfirm;
+        private readonly int value;
 
         public IeFileReadyQualifier(int value, bool negativeConfirm)
         {
@@ -19,12 +18,12 @@ namespace IEC60870.IE
         {
             int b1 = reader.ReadByte();
             value = b1 & 0x7f;
-            negativeConfirm = ((b1 & 0x80) == 0x80);
+            negativeConfirm = (b1 & 0x80) == 0x80;
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)value;
+            buffer[i] = (byte) value;
             if (negativeConfirm)
             {
                 buffer[i] |= 0x80;
@@ -32,12 +31,12 @@ namespace IEC60870.IE
             return 1;
         }
 
-        public int getValue()
+        public int GetValue()
         {
             return value;
         }
 
-        public bool isNegativeConfirm()
+        public bool IsNegativeConfirm()
         {
             return negativeConfirm;
         }

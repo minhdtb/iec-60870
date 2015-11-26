@@ -2,6 +2,6 @@
 {
     public abstract class InformationElement
     {
-        public abstract int encode(byte[] buffer, int i);
+        public abstract int Encode(byte[] buffer, int i);
     }
 }

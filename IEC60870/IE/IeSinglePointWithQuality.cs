@@ -1,6 +1,5 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
@@ -11,7 +10,7 @@ namespace IEC60870.IE
         {
             if (on)
             {
-                value |= 0x01;
+                Value |= 0x01;
             }
         }
 
@@ -19,14 +18,14 @@ namespace IEC60870.IE
         {
         }
 
-        public bool isOn()
+        public bool IsOn()
         {
-            return (value & 0x01) == 0x01;
+            return (Value & 0x01) == 0x01;
         }
 
         public override string ToString()
         {
-            return "Single Point, is on: " + isOn() + ", " + base.ToString();
+            return "Single Point, is on: " + IsOn() + ", " + base.ToString();
         }
     }
 }

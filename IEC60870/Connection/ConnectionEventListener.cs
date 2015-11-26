@@ -1,12 +1,12 @@
-﻿using IEC60870.Object;
-using System.IO;
+﻿using System.IO;
+using IEC60870.Object;
 
 namespace IEC60870.Connection
 {
     public class ConnectionEventListener
     {
-        public delegate void newASdu(ASdu aSdu);
+        public delegate void ConnectionClosed(IOException e);
 
-        public delegate void connectionClosed(IOException e);
+        public delegate void NewASdu(ASdu aSdu);
     }
 }

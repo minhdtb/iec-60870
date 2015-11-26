@@ -1,12 +1,11 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeNameOfFile : InformationElement
     {
-        private int value;
+        private readonly int value;
 
         public IeNameOfFile(int value)
         {
@@ -18,15 +17,15 @@ namespace IEC60870.IE
             value = reader.ReadByte() | (reader.ReadByte() << 8);
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i++] = (byte)value;
-            buffer[i] = (byte)(value >> 8);
+            buffer[i++] = (byte) value;
+            buffer[i] = (byte) (value >> 8);
 
             return 2;
         }
 
-        public int getValue()
+        public int GetValue()
         {
             return value;
         }

@@ -1,35 +1,35 @@
-﻿using IEC60870.IE.Base;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeTime56 : InformationElement
     {
-        private byte[] value = new byte[7];
+        private readonly byte[] value = new byte[7];
 
         public IeTime56(long timestamp, TimeZone timeZone, bool invalid)
         {
             var datetime = new DateTime(timestamp);
-            int ms = datetime.Millisecond + 1000 * datetime.Second;
+            var ms = datetime.Millisecond + 1000*datetime.Second;
 
-            value[0] = (byte)ms;
-            value[1] = (byte)(ms >> 8);
-            value[2] = (byte)datetime.Minute;
+            value[0] = (byte) ms;
+            value[1] = (byte) (ms >> 8);
+            value[2] = (byte) datetime.Minute;
 
             if (invalid)
             {
                 value[2] |= 0x80;
             }
-            value[3] = (byte)datetime.Hour;
+            value[3] = (byte) datetime.Hour;
             if (datetime.IsDaylightSavingTime())
             {
                 value[3] |= 0x80;
             }
-            value[4] = (byte)(datetime.Day + (((((int)datetime.DayOfWeek + 5) % 7) + 1) << 5));
-            value[5] = (byte)(datetime.Month + 1);
-            value[6] = (byte)(datetime.Year % 100);
+            value[4] = (byte) (datetime.Day + ((((int) datetime.DayOfWeek + 5)%7 + 1) << 5));
+            value[5] = (byte) (datetime.Month + 1);
+            value[6] = (byte) (datetime.Year%100);
         }
 
         public IeTime56(long timestamp) : this(timestamp, TimeZone.CurrentTimeZone, false)
@@ -38,7 +38,7 @@ namespace IEC60870.IE
 
         public IeTime56(byte[] value)
         {
-            for (int i = 0; i < 7; i++)
+            for (var i = 0; i < 7; i++)
             {
                 this.value[i] = value[i];
             }
@@ -49,16 +49,16 @@ namespace IEC60870.IE
             value = reader.ReadBytes(7);
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
             Array.Copy(value, 0, buffer, i, 7);
             return 7;
         }
 
-        public long getTimestamp(int startOfCentury, TimeZone timeZone)
+        public long GetTimestamp(int startOfCentury, TimeZone timeZone)
         {
-            int century = startOfCentury / 100 * 100;
-            if (value[6] < (startOfCentury % 100))
+            var century = startOfCentury/100*100;
+            if (value[6] < startOfCentury%100)
             {
                 century += 100;
             }
@@ -66,89 +66,89 @@ namespace IEC60870.IE
             return -1;
         }
 
-        public long getTimestamp(int startOfCentury)
+        public long GetTimestamp(int startOfCentury)
         {
-            return getTimestamp(startOfCentury, TimeZone.CurrentTimeZone);
+            return GetTimestamp(startOfCentury, TimeZone.CurrentTimeZone);
         }
 
-        public long getTimestamp()
+        public long GetTimestamp()
         {
-            return getTimestamp(1970, TimeZone.CurrentTimeZone);
+            return GetTimestamp(1970, TimeZone.CurrentTimeZone);
         }
 
-        public int getMillisecond()
+        public int GetMillisecond()
         {
-            return (((value[0] & 0xff) + ((value[1] & 0xff) << 8))) % 1000;
+            return ((value[0] & 0xff) + ((value[1] & 0xff) << 8))%1000;
         }
 
-        public int getSecond()
+        public int GetSecond()
         {
-            return (((value[0] & 0xff) + ((value[1] & 0xff) << 8))) / 1000;
+            return ((value[0] & 0xff) + ((value[1] & 0xff) << 8))/1000;
         }
 
-        public int getMinute()
+        public int GetMinute()
         {
             return value[2] & 0x3f;
         }
 
-        public int getHour()
+        public int GetHour()
         {
             return value[3] & 0x1f;
         }
 
-        public int getDayOfWeek()
+        public int GetDayOfWeek()
         {
             return (value[4] & 0xe0) >> 5;
         }
 
-        public int getDayOfMonth()
+        public int GetDayOfMonth()
         {
             return value[4] & 0x1f;
         }
 
-        public int getMonth()
+        public int GetMonth()
         {
             return value[5] & 0x0f;
         }
 
-        public int getYear()
+        public int GetYear()
         {
             return value[6] & 0x7f;
         }
 
-        public bool isSummerTime()
+        public bool IsSummerTime()
         {
             return (value[3] & 0x80) == 0x80;
         }
 
-        public bool isInvalid()
+        public bool IsInvalid()
         {
             return (value[2] & 0x80) == 0x80;
         }
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder("Time56: ");
-            appendWithNumDigits(builder, getDayOfMonth(), 2);
+            var builder = new StringBuilder("Time56: ");
+            AppendWithNumDigits(builder, GetDayOfMonth(), 2);
             builder.Append("-");
-            appendWithNumDigits(builder, getMonth(), 2);
+            AppendWithNumDigits(builder, GetMonth(), 2);
             builder.Append("-");
-            appendWithNumDigits(builder, getYear(), 2);
+            AppendWithNumDigits(builder, GetYear(), 2);
             builder.Append(" ");
-            appendWithNumDigits(builder, getHour(), 2);
+            AppendWithNumDigits(builder, GetHour(), 2);
             builder.Append(":");
-            appendWithNumDigits(builder, getMinute(), 2);
+            AppendWithNumDigits(builder, GetMinute(), 2);
             builder.Append(":");
-            appendWithNumDigits(builder, getSecond(), 2);
+            AppendWithNumDigits(builder, GetSecond(), 2);
             builder.Append(":");
-            appendWithNumDigits(builder, getMillisecond(), 3);
+            AppendWithNumDigits(builder, GetMillisecond(), 3);
 
-            if (isSummerTime())
+            if (IsSummerTime())
             {
                 builder.Append(" DST");
             }
 
-            if (isInvalid())
+            if (IsInvalid())
             {
                 builder.Append(", invalid");
             }
@@ -156,9 +156,9 @@ namespace IEC60870.IE
             return builder.ToString();
         }
 
-        private void appendWithNumDigits(StringBuilder builder, int value, int numDigits)
+        private void AppendWithNumDigits(StringBuilder builder, int value, int numDigits)
         {
-            int i = numDigits - 1;
+            var i = numDigits - 1;
             while (i < numDigits && value < Math.Pow(10, i))
             {
                 builder.Append("0");

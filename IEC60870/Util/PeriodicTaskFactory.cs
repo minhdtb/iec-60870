@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 namespace IEC60870.Util
 {
     public class RunTask
-    {        
-        private CancellationTokenSource source;
+    {
+        private readonly CancellationTokenSource source;
 
         public RunTask()
         {
@@ -25,12 +25,12 @@ namespace IEC60870.Util
     }
 
     public class PeriodicTaskFactory
-    {        
+    {
         public static RunTask Start(Action action, int delay)
         {
             var run = new RunTask();
             var task = Task.Delay(delay, run.GetToken());
-            task.ContinueWith((t) =>
+            task.ContinueWith(t =>
             {
                 try
                 {

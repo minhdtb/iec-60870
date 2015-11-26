@@ -1,31 +1,32 @@
-﻿using IEC60870.Connection;
-using IEC60870.Enum;
-using System;
+﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
+using IEC60870.Connection;
+using IEC60870.Enum;
 
 namespace IEC60870.Object
 {
     public class ASdu
     {
-        private TypeId typeId;
+        private readonly CauseOfTransmission causeOfTransmission;
+        private readonly int commonAddress;
+        private readonly InformationObject[] informationObjects;
+        private readonly bool negativeConfirm;
+        private readonly int originatorAddress;
+        private readonly byte[] privateInformation;
+        private readonly int sequenceLength;
+        private readonly bool test;
+        private readonly TypeId typeId;
 
-        public bool isSequenceOfElements;
-
-        private CauseOfTransmission causeOfTransmission;
-        private bool test;
-        private bool negativeConfirm;
-        private int originatorAddress;
-        private int commonAddress;
-        private InformationObject[] informationObjects;
-        private byte[] privateInformation;
-        private int sequenceLength;
+        public bool IsSequenceOfElements;
 
         public ASdu(TypeId typeId, bool isSequenceOfElements, CauseOfTransmission causeOfTransmission, bool test,
             bool negativeConfirm, int originatorAddress, int commonAddress, InformationObject[] informationObjects)
         {
+            IsSequenceOfElements = isSequenceOfElements;
+
             this.typeId = typeId;
-            this.isSequenceOfElements = isSequenceOfElements;
             this.causeOfTransmission = causeOfTransmission;
             this.test = test;
             this.negativeConfirm = negativeConfirm;
@@ -34,23 +35,18 @@ namespace IEC60870.Object
             this.informationObjects = informationObjects;
 
             privateInformation = null;
-            if (isSequenceOfElements)
-            {
-                sequenceLength = informationObjects[0].getInformationElements().Length;
-            }
-            else
-            {
-                sequenceLength = informationObjects.Length;
-            }
+
+            sequenceLength = isSequenceOfElements
+                ? informationObjects[0].GetInformationElements().Length
+                : informationObjects.Length;
         }
 
         public ASdu(TypeId typeId, bool isSequenceOfElements, int sequenceLength,
             CauseOfTransmission causeOfTransmission, bool test, bool negativeConfirm, int originatorAddress,
             int commonAddress, byte[] privateInformation)
         {
-
             this.typeId = typeId;
-            this.isSequenceOfElements = isSequenceOfElements;
+            IsSequenceOfElements = isSequenceOfElements;
             this.causeOfTransmission = causeOfTransmission;
             this.test = test;
             this.negativeConfirm = negativeConfirm;
@@ -63,20 +59,19 @@ namespace IEC60870.Object
 
         public ASdu(BinaryReader reader, ConnectionSettings settings, int aSduLength)
         {
-
             int typeIdCode = reader.ReadByte();
 
-            typeId = (TypeId)typeIdCode;
+            typeId = (TypeId) typeIdCode;
 
             int tempbyte = reader.ReadByte();
 
-            isSequenceOfElements = (tempbyte & 0x80) == 0x80;
+            IsSequenceOfElements = (tempbyte & 0x80) == 0x80;
 
             int numberOfSequenceElements;
             int numberOfInformationObjects;
 
             sequenceLength = tempbyte & 0x7f;
-            if (isSequenceOfElements)
+            if (IsSequenceOfElements)
             {
                 numberOfSequenceElements = sequenceLength;
                 numberOfInformationObjects = 1;
@@ -88,11 +83,11 @@ namespace IEC60870.Object
             }
 
             tempbyte = reader.ReadByte();
-            causeOfTransmission = (CauseOfTransmission)(tempbyte & 0x3f);
+            causeOfTransmission = (CauseOfTransmission) (tempbyte & 0x3f);
             test = (tempbyte & 0x80) == 0x80;
             negativeConfirm = (tempbyte & 0x40) == 0x40;
 
-            if (settings.cotFieldLength == 2)
+            if (settings.CotFieldLength == 2)
             {
                 originatorAddress = reader.ReadByte();
                 aSduLength--;
@@ -102,27 +97,26 @@ namespace IEC60870.Object
                 originatorAddress = -1;
             }
 
-            if (settings.commonAddressFieldLength == 1)
+            if (settings.CommonAddressFieldLength == 1)
             {
                 commonAddress = reader.ReadByte();
             }
             else
             {
-                commonAddress = reader.ReadByte() + ((reader.ReadByte() << 8));
+                commonAddress = reader.ReadByte() + (reader.ReadByte() << 8);
                 aSduLength--;
             }
 
             if (typeIdCode < 128)
-            {                
+            {
                 informationObjects = new InformationObject[numberOfInformationObjects];
 
-                for (int i = 0; i < numberOfInformationObjects; i++)
+                for (var i = 0; i < numberOfInformationObjects; i++)
                 {
                     informationObjects[i] = new InformationObject(reader, typeId, numberOfSequenceElements, settings);
                 }
 
                 privateInformation = null;
-
             }
             else
             {
@@ -131,106 +125,104 @@ namespace IEC60870.Object
             }
         }
 
-        public TypeId getTypeIdentification()
+        public TypeId GetTypeIdentification()
         {
             return typeId;
         }
 
-        public int getSequenceLength()
+        public int GetSequenceLength()
         {
             return sequenceLength;
         }
 
-        public CauseOfTransmission getCauseOfTransmission()
+        public CauseOfTransmission GetCauseOfTransmission()
         {
             return causeOfTransmission;
         }
 
-        public bool isTestFrame()
+        public bool IsTestFrame()
         {
             return test;
         }
 
-        public bool isNegativeConfirm()
+        public bool IsNegativeConfirm()
         {
             return negativeConfirm;
         }
 
-        public int getOriginatorAddress()
+        public int GetOriginatorAddress()
         {
             return originatorAddress;
         }
 
-        public int getCommonAddress()
+        public int GetCommonAddress()
         {
             return commonAddress;
         }
 
-        public InformationObject[] getInformationObjects()
+        public InformationObject[] GetInformationObjects()
         {
             return informationObjects;
         }
 
-        public byte[] getPrivateInformation()
+        public byte[] GetPrivateInformation()
         {
             return privateInformation;
         }
 
-        public int encode(byte[] buffer, int i, ConnectionSettings settings)
+        public int Encode(byte[] buffer, int i, ConnectionSettings settings)
         {
-            int origi = i;
+            var origi = i;
 
-            buffer[i++] = (byte)typeId;
-            if (isSequenceOfElements)
+            buffer[i++] = (byte) typeId;
+            if (IsSequenceOfElements)
             {
-                buffer[i++] = (byte)(sequenceLength | 0x80);
+                buffer[i++] = (byte) (sequenceLength | 0x80);
             }
             else
             {
-                buffer[i++] = (byte)sequenceLength;
+                buffer[i++] = (byte) sequenceLength;
             }
 
             if (test)
             {
                 if (negativeConfirm)
                 {
-                    buffer[i++] = (byte)((byte)causeOfTransmission | 0xC0);
+                    buffer[i++] = (byte) ((byte) causeOfTransmission | 0xC0);
                 }
                 else
                 {
-                    buffer[i++] = (byte)((byte)causeOfTransmission | 0x80);
+                    buffer[i++] = (byte) ((byte) causeOfTransmission | 0x80);
                 }
             }
             else
             {
                 if (negativeConfirm)
                 {
-                    buffer[i++] = (byte)((byte)causeOfTransmission | 0x40);
+                    buffer[i++] = (byte) ((byte) causeOfTransmission | 0x40);
                 }
                 else
                 {
-                    buffer[i++] = (byte)causeOfTransmission;
+                    buffer[i++] = (byte) causeOfTransmission;
                 }
             }
 
-            if (settings.cotFieldLength == 2)
+            if (settings.CotFieldLength == 2)
             {
-                buffer[i++] = (byte)originatorAddress;
+                buffer[i++] = (byte) originatorAddress;
             }
 
-            buffer[i++] = (byte)commonAddress;
+            buffer[i++] = (byte) commonAddress;
 
-            if (settings.commonAddressFieldLength == 2)
+            if (settings.CommonAddressFieldLength == 2)
             {
-                buffer[i++] = (byte)(commonAddress >> 8);
+                buffer[i++] = (byte) (commonAddress >> 8);
             }
 
             if (informationObjects != null)
             {
-                foreach (InformationObject informationObject in informationObjects)
-                {
-                    i += informationObject.encode(buffer, i, settings);
-                }
+                i = informationObjects.Aggregate(i,
+                    (current, informationObject) => current + informationObject.Encode(buffer, current, settings));
             }
             else
             {
@@ -243,36 +235,37 @@ namespace IEC60870.Object
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder("Type ID: " + (int)typeId + ", " + Description.GetAttr(typeId).Name +
-                    "\nCause of transmission: " + causeOfTransmission + ", test: "
-                    + isTestFrame() + ", negative con: " + isNegativeConfirm() + "\nOriginator address: "
-                    + originatorAddress + ", Common address: " + commonAddress);
+            var builder = new StringBuilder("Type ID: " + (int) typeId + ", " + Description.GetAttr(typeId).Name +
+                                            "\nCause of transmission: " + causeOfTransmission + ", test: "
+                                            + IsTestFrame() + ", negative con: " + IsNegativeConfirm() +
+                                            "\nOriginator address: "
+                                            + originatorAddress + ", Common address: " + commonAddress);
 
             if (informationObjects != null)
             {
-                foreach (InformationObject informationObject in informationObjects)
+                foreach (var informationObject in informationObjects)
                 {
                     builder.Append("\n");
-                    builder.Append(informationObject.ToString());
+                    builder.Append(informationObject);
                 }
             }
             else
             {
                 builder.Append("\nPrivate Information:\n");
-                int l = 1;
-                foreach (byte b in privateInformation)
+                var l = 1;
+                foreach (var b in privateInformation)
                 {
-                    if ((l != 1) && ((l - 1) % 8 == 0))
+                    if ((l != 1) && ((l - 1)%8 == 0))
                     {
                         builder.Append(' ');
                     }
-                    if ((l != 1) && ((l - 1) % 16 == 0))
+                    if ((l != 1) && ((l - 1)%16 == 0))
                     {
                         builder.Append('\n');
                     }
                     l++;
                     builder.Append("0x");
-                    string hexString = (b & 0xff).ToString("X");
+                    var hexString = (b & 0xff).ToString("X");
                     if (hexString.Length == 1)
                     {
                         builder.Append(0);

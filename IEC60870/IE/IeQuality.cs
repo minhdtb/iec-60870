@@ -1,16 +1,16 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeQuality : IeAbstractQuality
     {
-        public IeQuality(bool overflow, bool blocked, bool substituted, bool notTopical, bool invalid) : base(blocked, substituted, notTopical, invalid)
+        public IeQuality(bool overflow, bool blocked, bool substituted, bool notTopical, bool invalid)
+            : base(blocked, substituted, notTopical, invalid)
         {
             if (overflow)
             {
-                value |= 0x01;
+                Value |= 0x01;
             }
         }
 
@@ -18,14 +18,14 @@ namespace IEC60870.IE
         {
         }
 
-        public bool isOverflow() 
+        public bool IsOverflow()
         {
-            return (value & 0x01) == 0x01;
+            return (Value & 0x01) == 0x01;
         }
 
         public override string ToString()
         {
-            return "Quality, overflow: " + isOverflow() + ", " + base.ToString();
+            return "Quality, overflow: " + IsOverflow() + ", " + base.ToString();
         }
     }
 }

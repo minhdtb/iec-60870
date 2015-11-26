@@ -1,12 +1,12 @@
-﻿using IEC60870.IE.Base;
-using System;
+﻿using System;
 using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeNormalizedValue : InformationElement
     {
-        protected int value;
+        protected int Value;
 
         public IeNormalizedValue(int value)
         {
@@ -14,31 +14,30 @@ namespace IEC60870.IE
             {
                 throw new ArgumentException("Value has to be in the range -32768..32767");
             }
-            this.value = value;
+            Value = value;
         }
 
         public IeNormalizedValue(BinaryReader reader)
         {
-            value = reader.ReadByte() | (reader.ReadByte() << 8);
+            Value = reader.ReadByte() | (reader.ReadByte() << 8);
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-
-            buffer[i++] = (byte)value;
-            buffer[i] = (byte)(value >> 8);
+            buffer[i++] = (byte) Value;
+            buffer[i] = (byte) (Value >> 8);
 
             return 2;
         }
 
-        public int getValue()
+        public int GetValue()
         {
-            return value;
+            return Value;
         }
 
         public override string ToString()
         {
-            return "Normalized value: " + ((double)value / 32768);
+            return "Normalized value: " + (double) Value/32768;
         }
     }
 }

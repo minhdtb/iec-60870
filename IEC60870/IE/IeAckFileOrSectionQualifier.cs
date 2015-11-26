@@ -1,13 +1,12 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeAckFileOrSectionQualifier : InformationElement
     {
-        private int action;
-        private int notice;
+        private readonly int action;
+        private readonly int notice;
 
         public IeAckFileOrSectionQualifier(int action, int notice)
         {
@@ -22,18 +21,18 @@ namespace IEC60870.IE
             notice = (b1 >> 4) & 0x0f;
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)(action | (notice << 4));
+            buffer[i] = (byte) (action | (notice << 4));
             return 1;
         }
 
-        public int getRequest()
+        public int GetRequest()
         {
             return action;
         }
 
-        public int getFreeze()
+        public int GetFreeze()
         {
             return notice;
         }

@@ -1,13 +1,12 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeQualifierOfCounterInterrogation : InformationElement
     {
-        private int request;
-        private int freeze;
+        private readonly int freeze;
+        private readonly int request;
 
         public IeQualifierOfCounterInterrogation(int request, int freeze)
         {
@@ -22,18 +21,18 @@ namespace IEC60870.IE
             freeze = (b1 >> 6) & 0x03;
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)(request | (freeze << 6));
+            buffer[i] = (byte) (request | (freeze << 6));
             return 1;
         }
 
-        public int getRequest()
+        public int GetRequest()
         {
             return request;
         }
 
-        public int getFreeze()
+        public int GetFreeze()
         {
             return freeze;
         }

@@ -1,14 +1,13 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeQualifierOfParameterOfMeasuredValues : InformationElement
     {
-        private int kindOfParameter;
-        private bool change;
-        private bool notInOperation;
+        private readonly bool change;
+        private readonly int kindOfParameter;
+        private readonly bool notInOperation;
 
         public IeQualifierOfParameterOfMeasuredValues(int kindOfParameter, bool change, bool notInOperation)
         {
@@ -21,13 +20,13 @@ namespace IEC60870.IE
         {
             int b1 = reader.ReadByte();
             kindOfParameter = b1 & 0x3f;
-            change = ((b1 & 0x40) == 0x40);
-            notInOperation = ((b1 & 0x80) == 0x80);
+            change = (b1 & 0x40) == 0x40;
+            notInOperation = (b1 & 0x80) == 0x80;
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)kindOfParameter;
+            buffer[i] = (byte) kindOfParameter;
             if (change)
             {
                 buffer[i] |= 0x40;
@@ -39,17 +38,17 @@ namespace IEC60870.IE
             return 1;
         }
 
-        public int getKindOfParameter()
+        public int GetKindOfParameter()
         {
             return kindOfParameter;
         }
 
-        public bool isChange()
+        public bool IsChange()
         {
             return change;
         }
 
-        public bool isNotInOperation()
+        public bool IsNotInOperation()
         {
             return notInOperation;
         }
@@ -57,7 +56,7 @@ namespace IEC60870.IE
         public override string ToString()
         {
             return "Qualifier of parameter of measured values, kind of parameter: " + kindOfParameter + ", change: "
-                    + change + ", not in operation: " + notInOperation;
+                   + change + ", not in operation: " + notInOperation;
         }
     }
 }

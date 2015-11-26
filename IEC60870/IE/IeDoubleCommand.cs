@@ -1,53 +1,53 @@
-﻿using IEC60870.IE.Base;
-using System;
+﻿using System;
 using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public enum DoubleCommandState
     {
-        NOT_PERMITTED_A = 0,
-        OFF,
-        ON,
-        NOT_PERMITTED_B
+        NotPermittedA = 0,
+        Off,
+        On,
+        NotPermittedB
     }
 
     public class IeDoubleCommand : IeAbstractQualifierOfCommand
     {
-        public static DoubleCommandState createDoubleCommandState(int code)
-        {
-            switch (code)
-            {
-                case 0:
-                    return DoubleCommandState.NOT_PERMITTED_A;
-                case 1:
-                    return DoubleCommandState.OFF;
-                case 2:
-                    return DoubleCommandState.ON;
-                case 3:
-                    return DoubleCommandState.NOT_PERMITTED_B;
-                default:
-                    throw new ArgumentException("Invalid code");
-            }
-        }
-
         public IeDoubleCommand(DoubleCommandState commandState, int qualifier, bool select) : base(qualifier, select)
         {
-            value |= (int)commandState;
+            Value |= (int) commandState;
         }
 
         public IeDoubleCommand(BinaryReader reader) : base(reader)
         {
         }
 
-        public DoubleCommandState getCommandState()
+        public static DoubleCommandState CreateDoubleCommandState(int code)
         {
-            return createDoubleCommandState(value & 0x03);
+            switch (code)
+            {
+                case 0:
+                    return DoubleCommandState.NotPermittedA;
+                case 1:
+                    return DoubleCommandState.Off;
+                case 2:
+                    return DoubleCommandState.On;
+                case 3:
+                    return DoubleCommandState.NotPermittedB;
+                default:
+                    throw new ArgumentException("Invalid code");
+            }
+        }
+
+        public DoubleCommandState GetCommandState()
+        {
+            return CreateDoubleCommandState(Value & 0x03);
         }
 
         public override string ToString()
         {
-            return "Double command state: " + getCommandState() + ", " + base.ToString();
+            return "Double command state: " + GetCommandState() + ", " + base.ToString();
         }
     }
 }

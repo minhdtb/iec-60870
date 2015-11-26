@@ -1,13 +1,12 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeSectionReadyQualifier : InformationElement
     {
-        private int value;
-        private bool sectionNotReady;
+        private readonly bool sectionNotReady;
+        private readonly int value;
 
         public IeSectionReadyQualifier(int value, bool sectionNotReady)
         {
@@ -19,12 +18,12 @@ namespace IEC60870.IE
         {
             int b1 = reader.ReadByte();
             value = b1 & 0x7f;
-            sectionNotReady = ((b1 & 0x80) == 0x80);
+            sectionNotReady = (b1 & 0x80) == 0x80;
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)value;
+            buffer[i] = (byte) value;
             if (sectionNotReady)
             {
                 buffer[i] |= 0x80;
@@ -32,12 +31,12 @@ namespace IEC60870.IE
             return 1;
         }
 
-        public int getValue()
+        public int GetValue()
         {
             return value;
         }
 
-        public bool isSectionNotReady()
+        public bool IsSectionNotReady()
         {
             return sectionNotReady;
         }

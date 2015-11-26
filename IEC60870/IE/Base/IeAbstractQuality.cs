@@ -1,69 +1,68 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace IEC60870.IE.Base
 {
     public abstract class IeAbstractQuality : InformationElement
     {
-        protected int value;
+        protected int Value;
 
-        public IeAbstractQuality(bool blocked, bool substituted, bool notTopical, bool invalid)
+        protected IeAbstractQuality(bool blocked, bool substituted, bool notTopical, bool invalid)
         {
-            value = 0;
+            Value = 0;
 
             if (blocked)
             {
-                value |= 0x10;
+                Value |= 0x10;
             }
             if (substituted)
             {
-                value |= 0x20;
+                Value |= 0x20;
             }
             if (notTopical)
             {
-                value |= 0x40;
+                Value |= 0x40;
             }
             if (invalid)
             {
-                value |= 0x80;
+                Value |= 0x80;
             }
         }
 
-        public IeAbstractQuality(BinaryReader reader)
+        protected IeAbstractQuality(BinaryReader reader)
         {
-            value = reader.ReadByte();
+            Value = reader.ReadByte();
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)value;
+            buffer[i] = (byte) Value;
             return 1;
         }
 
-        public bool isBlocked()
+        public bool IsBlocked()
         {
-            return (value & 0x10) == 0x10;
+            return (Value & 0x10) == 0x10;
         }
 
-        public bool isSubstituted()
+        public bool IsSubstituted()
         {
-            return (value & 0x20) == 0x20;
+            return (Value & 0x20) == 0x20;
         }
 
-        public bool isNotTopical()
+        public bool IsNotTopical()
         {
-            return (value & 0x40) == 0x40;
+            return (Value & 0x40) == 0x40;
         }
 
-        public bool isInvalid()
+        public bool IsInvalid()
         {
-            return (value & 0x80) == 0x80;
+            return (Value & 0x80) == 0x80;
         }
 
         public override string ToString()
         {
-            return "blocked: " + isBlocked() + ", substituted: " + isSubstituted() + ", not topical: " + isNotTopical()
-                    + ", invalid: " + isInvalid();
+            return "blocked: " + IsBlocked() + ", substituted: " + IsSubstituted() + ", not topical: " + IsNotTopical()
+                   + ", invalid: " + IsInvalid();
         }
     }
 }

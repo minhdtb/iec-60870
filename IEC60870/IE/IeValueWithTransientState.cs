@@ -1,13 +1,13 @@
-﻿using IEC60870.IE.Base;
-using System;
+﻿using System;
 using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeValueWithTransientState : InformationElement
     {
-        private long value;
-        private bool transientState;
+        private readonly bool transientState;
+        private readonly long value;
 
         public IeValueWithTransientState(int value, bool transientState)
         {
@@ -24,7 +24,7 @@ namespace IEC60870.IE
         {
             int b1 = reader.ReadByte();
 
-            transientState = ((b1 & 0x80) == 0x80);
+            transientState = (b1 & 0x80) == 0x80;
 
             if ((b1 & 0x40) == 0x40)
             {
@@ -34,36 +34,35 @@ namespace IEC60870.IE
             {
                 value = b1 & 0x3f;
             }
-
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
             if (transientState)
             {
-                buffer[i] = (byte)(value | 0x80);
+                buffer[i] = (byte) (value | 0x80);
             }
             else
             {
-                buffer[i] = (byte)(value & 0x7f);
+                buffer[i] = (byte) (value & 0x7f);
             }
 
             return 1;
         }
 
-        public long getValue()
+        public long GetValue()
         {
             return value;
         }
 
-        public bool isTransientState()
+        public bool IsTransientState()
         {
             return transientState;
         }
 
         public override string ToString()
         {
-            return "Value with transient state, value: " + getValue() + ", transient state: " + isTransientState();
+            return "Value with transient state, value: " + GetValue() + ", transient state: " + IsTransientState();
         }
     }
 }

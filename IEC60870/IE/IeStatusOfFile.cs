@@ -1,18 +1,17 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public class IeStatusOfFile : InformationElement
     {
-        private int status;
-        private bool lastFileOfDirectory;
-        private bool nameDefinesDirectory;
-        private bool transferIsActive;
+        private readonly bool lastFileOfDirectory;
+        private readonly bool nameDefinesDirectory;
+        private readonly int status;
+        private readonly bool transferIsActive;
 
         public IeStatusOfFile(int status, bool lastFileOfDirectory, bool nameDefinesDirectory,
-                bool transferIsActive)
+            bool transferIsActive)
         {
             this.status = status;
             this.lastFileOfDirectory = lastFileOfDirectory;
@@ -24,14 +23,14 @@ namespace IEC60870.IE
         {
             int b1 = reader.ReadByte();
             status = b1 & 0x1f;
-            lastFileOfDirectory = ((b1 & 0x20) == 0x20);
-            nameDefinesDirectory = ((b1 & 0x40) == 0x40);
-            transferIsActive = ((b1 & 0x80) == 0x80);
+            lastFileOfDirectory = (b1 & 0x20) == 0x20;
+            nameDefinesDirectory = (b1 & 0x40) == 0x40;
+            transferIsActive = (b1 & 0x80) == 0x80;
         }
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)status;
+            buffer[i] = (byte) status;
             if (lastFileOfDirectory)
             {
                 buffer[i] |= 0x20;
@@ -47,22 +46,22 @@ namespace IEC60870.IE
             return 1;
         }
 
-        public int getStatus()
+        public int GetStatus()
         {
             return status;
         }
 
-        public bool isLastFileOfDirectory()
+        public bool IsLastFileOfDirectory()
         {
             return lastFileOfDirectory;
         }
 
-        public bool isNameDefinesDirectory()
+        public bool IsNameDefinesDirectory()
         {
             return nameDefinesDirectory;
         }
 
-        public bool isTransferIsActive()
+        public bool IsTransferIsActive()
         {
             return transferIsActive;
         }
@@ -70,7 +69,7 @@ namespace IEC60870.IE
         public override string ToString()
         {
             return "Status of file: " + status + ", last file of directory: " + lastFileOfDirectory
-                    + ", name defines directory: " + nameDefinesDirectory + ", transfer is active: " + transferIsActive;
+                   + ", name defines directory: " + nameDefinesDirectory + ", transfer is active: " + transferIsActive;
         }
     }
 }

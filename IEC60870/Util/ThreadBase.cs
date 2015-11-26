@@ -4,13 +4,27 @@ namespace IEC60870.Util
 {
     public abstract class ThreadBase
     {
-        private Thread thread;
+        private readonly Thread thread;
 
-        protected ThreadBase() { thread = new Thread(new ThreadStart(this.Run)); }
+        protected ThreadBase()
+        {
+            thread = new Thread(Run);
+        }
 
-        public void Start() { thread.Start(); }
-        public void Join() { thread.Join(); }
-        public bool IsAlive { get { return thread.IsAlive; } }
+        public bool IsAlive
+        {
+            get { return thread.IsAlive; }
+        }
+
+        public void Start()
+        {
+            thread.Start();
+        }
+
+        public void Join()
+        {
+            thread.Join();
+        }
 
         public abstract void Run();
     }

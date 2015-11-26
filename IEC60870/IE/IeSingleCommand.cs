@@ -1,6 +1,5 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
@@ -10,7 +9,7 @@ namespace IEC60870.IE
         {
             if (commandStateOn)
             {
-                value |= 0x01;
+                Value |= 0x01;
             }
         }
 
@@ -18,14 +17,14 @@ namespace IEC60870.IE
         {
         }
 
-        public bool isCommandStateOn()
+        public bool IsCommandStateOn()
         {
-            return (value & 0x01) == 0x01;
+            return (Value & 0x01) == 0x01;
         }
 
         public override string ToString()
         {
-            return "Single Command state on: " + isCommandStateOn() + ", " + base.ToString();
+            return "Single Command state on: " + IsCommandStateOn() + ", " + base.ToString();
         }
     }
 }

@@ -1,189 +1,66 @@
-﻿using IEC60870.Enum;
+﻿using System;
+using System.IO;
+using System.Net.Sockets;
+using IEC60870.Enum;
 using IEC60870.IE;
 using IEC60870.IE.Base;
 using IEC60870.Object;
 using IEC60870.Util;
-using System;
-using System.IO;
-using System.Net.Sockets;
 
 namespace IEC60870.Connection
 {
     public class Connection
     {
-        private Socket socket;
+        private static readonly byte[] TestfrConBuffer = {0x68, 0x04, 0x83, 0x00, 0x00, 0x00};
+        private static readonly byte[] TestfrActBuffer = {0x68, 0x04, 0x43, 0x00, 0x00, 0x00};
+        private static readonly byte[] StartdtActBuffer = {0x68, 0x04, 0x07, 0x00, 0x00, 0x00};
+        private static readonly byte[] StartdtConBuffer = {0x68, 0x04, 0x0b, 0x00, 0x00, 0x00};
 
-        private BinaryWriter writer;
-        private BinaryReader reader;
+        private readonly byte[] buffer = new byte[255];
+        private readonly BinaryReader reader;
 
-        private bool closed = false;
+        private readonly ConnectionSettings settings;
 
-        private ConnectionSettings settings;
+        private readonly CountDownLatch startdtactSignal;
+        private readonly BinaryWriter writer;
+        private int acknowledgedReceiveSequenceNumber;
+        private int acknowledgedSendSequenceNumber;
 
-        public ConnectionEventListener.newASdu newASdu = null;
-        public ConnectionEventListener.connectionClosed connectionClosed = null;
+        private bool closed;
+        private IOException closedIoException;
+        public ConnectionEventListener.ConnectionClosed ConnectionClosed = null;
 
-        private int sendSequenceNumber = 0;
-        private int receiveSequenceNumber = 0;
-        private int acknowledgedReceiveSequenceNumber = 0;
-        private int acknowledgedSendSequenceNumber = 0;
+        private RunTask maxIdleTimeTimerFuture;
 
-        private int originatorAddress = 0;
-        private IOException closedIOException = null;
+        private RunTask maxTimeNoAckReceivedFuture;
 
-        private byte[] buffer = new byte[255];
+        private RunTask maxTimeNoAckSentFuture;
 
-        private static byte[] TESTFR_CON_BUFFER = new byte[] { 0x68, 0x04, 0x83, 0x00, 0x00, 0x00 };
-        private static byte[] TESTFR_ACT_BUFFER = new byte[] { 0x68, 0x04, 0x43, 0x00, 0x00, 0x00 };
-        private static byte[] STARTDT_ACT_BUFFER = new byte[] { 0x68, 0x04, 0x07, 0x00, 0x00, 0x00 };
-        private static byte[] STARTDT_CON_BUFFER = new byte[] { 0x68, 0x04, 0x0b, 0x00, 0x00, 0x00 };
+        private RunTask maxTimeNoTestConReceivedFuture;
 
-        private RunTask maxTimeNoAckSentFuture = null;
+        public ConnectionEventListener.NewASdu NewASdu = null;
 
-        private RunTask maxTimeNoAckReceivedFuture = null;
+        private int originatorAddress;
+        private int receiveSequenceNumber;
 
-        private RunTask maxIdleTimeTimerFuture = null;
-
-        private RunTask maxTimeNoTestConReceivedFuture = null;
-
-        private CountDownLatch startdtactSignal;
+        private int sendSequenceNumber;
         private CountDownLatch startdtConSignal;
-
-        private class ConnectionReader : ThreadBase
-        {
-            private Connection innerConnection;
-            public ConnectionReader(Connection connection)
-            {
-                innerConnection = connection;
-            }
-
-            public override void Run()
-            {
-                try
-                {
-                    var reader = innerConnection.reader;
-                    while (true)
-                    {
-                        if (reader.ReadByte() != 0x68)
-                        {
-                            throw new IOException("Message does not start with 0x68");
-                        }
-
-                        APdu aPdu = new APdu(reader, innerConnection.settings);
-                        switch (aPdu.getApciType())
-                        {
-                            case APdu.APCI_TYPE.I_FORMAT:
-                                if (innerConnection.receiveSequenceNumber != aPdu.getSendSeqNumber())
-                                {
-                                    throw new IOException("Got unexpected send sequence number: " + aPdu.getSendSeqNumber()
-                                            + ", expected: " + innerConnection.receiveSequenceNumber);
-                                }
-
-                                innerConnection.receiveSequenceNumber = (aPdu.getSendSeqNumber() + 1) % 32768;
-                                innerConnection.handleReceiveSequenceNumber(aPdu);
-
-                                if (innerConnection.newASdu != null)
-                                {
-                                    innerConnection.newASdu(aPdu.getASdu());
-                                }
-
-                                int numUnconfirmedIPdusReceived = innerConnection.getSequenceNumberDifference(
-                                    innerConnection.receiveSequenceNumber,
-                                    innerConnection.acknowledgedReceiveSequenceNumber);
-                                if (numUnconfirmedIPdusReceived > innerConnection.settings.maxUnconfirmedIPdusReceived)
-                                {
-                                    innerConnection.sendSFormatPdu();
-                                    if (innerConnection.maxTimeNoAckSentFuture != null)
-                                    {
-                                        innerConnection.maxTimeNoAckSentFuture.Cancel();
-                                        innerConnection.maxTimeNoAckSentFuture = null;
-                                    }
-                                }
-                                else
-                                {
-                                    if (innerConnection.maxTimeNoAckSentFuture == null)
-                                    {
-                                        innerConnection.maxTimeNoAckSentFuture = PeriodicTaskFactory.Start(() =>
-                                        {
-                                            innerConnection.sendSFormatPdu();
-                                        },
-                                        innerConnection.settings.maxTimeNoAckSent);
-                                    };
-                                }
-
-                                innerConnection.resetMaxIdleTimeTimer();
-                                break;
-                            case APdu.APCI_TYPE.STARTDT_CON:
-                                if (innerConnection.startdtConSignal != null)
-                                {
-                                    innerConnection.startdtConSignal.Signal();
-                                }
-                                innerConnection.resetMaxIdleTimeTimer();
-                                break;
-                            case APdu.APCI_TYPE.STARTDT_ACT:
-                                if (innerConnection.startdtactSignal != null)
-                                {
-                                    innerConnection.startdtactSignal.Signal();
-                                }
-                                break;
-                            case APdu.APCI_TYPE.S_FORMAT:
-                                innerConnection.handleReceiveSequenceNumber(aPdu);
-                                innerConnection.resetMaxIdleTimeTimer();
-                                break;
-                            case APdu.APCI_TYPE.TESTFR_ACT:
-                                innerConnection.writer.Write(TESTFR_CON_BUFFER, 0, TESTFR_CON_BUFFER.Length);
-                                innerConnection.writer.Flush();
-                                innerConnection.resetMaxIdleTimeTimer();
-                                break;
-                            case APdu.APCI_TYPE.TESTFR_CON:
-                                if (innerConnection.maxTimeNoTestConReceivedFuture != null)
-                                {
-                                    innerConnection.maxTimeNoTestConReceivedFuture.Cancel();
-                                    innerConnection.maxTimeNoTestConReceivedFuture = null;
-                                }
-                                innerConnection.resetMaxIdleTimeTimer();
-                                break;
-                            default:
-                                throw new IOException("Got unexpected message with APCI Type: " + aPdu.getApciType());
-                        }
-                    }
-                }
-                catch (IOException e)
-                {
-                    innerConnection.closedIOException = e;
-                }
-                catch (Exception e)
-                {
-                    innerConnection.closedIOException = new IOException(e.Message);
-                }
-                finally
-                {
-                    if (innerConnection.connectionClosed != null)
-                    {
-                        innerConnection.connectionClosed(innerConnection.closedIOException);
-                    }
-
-                    innerConnection.close();
-                }
-            }
-        }
 
         public Connection(Socket socket, ConnectionSettings settings)
         {
-            this.socket = socket;
             this.settings = settings;
 
-            NetworkStream ns = new NetworkStream(this.socket);
+            var ns = new NetworkStream(socket);
             writer = new BinaryWriter(ns);
             reader = new BinaryReader(ns);
 
             startdtactSignal = new CountDownLatch(1);
 
-            ConnectionReader connectionReader = new ConnectionReader(this);
+            var connectionReader = new ConnectionReader(this);
             connectionReader.Start();
         }
 
-        public void close()
+        public void Close()
         {
             if (!closed)
             {
@@ -209,7 +86,7 @@ namespace IEC60870.Connection
             }
         }
 
-        public void startDataTransfer(int timeout = 0)
+        public void StartDataTransfer(int timeout = 0)
         {
             if (timeout < 0)
             {
@@ -218,7 +95,7 @@ namespace IEC60870.Connection
 
             startdtConSignal = new CountDownLatch(1);
 
-            writer.Write(STARTDT_ACT_BUFFER, 0, STARTDT_ACT_BUFFER.Length);
+            writer.Write(StartdtActBuffer, 0, StartdtActBuffer.Length);
             writer.Flush();
 
             if (timeout == 0)
@@ -227,11 +104,11 @@ namespace IEC60870.Connection
             }
             else
             {
-                startdtConSignal.Wait(timeout);           
+                startdtConSignal.Wait(timeout);
             }
         }
 
-        public void waitForStartDT(int timeout = 0)
+        public void WaitForStartDt(int timeout = 0)
         {
             if (timeout < 0)
             {
@@ -247,17 +124,17 @@ namespace IEC60870.Connection
                 startdtactSignal.Wait(timeout);
             }
 
-            writer.Write(STARTDT_CON_BUFFER, 0, STARTDT_CON_BUFFER.Length);
+            writer.Write(StartdtConBuffer, 0, StartdtConBuffer.Length);
             writer.Flush();
 
-            resetMaxIdleTimeTimer();
+            ResetMaxIdleTimeTimer();
         }
 
-        public void send(ASdu aSdu)
+        public void Send(ASdu aSdu)
         {
             acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
-            APdu requestAPdu = new APdu(sendSequenceNumber, receiveSequenceNumber, APdu.APCI_TYPE.I_FORMAT, aSdu);
-            sendSequenceNumber = (sendSequenceNumber + 1) % 32768;
+            var requestAPdu = new APdu(sendSequenceNumber, receiveSequenceNumber, APdu.ApciType.FORMAT, aSdu);
+            sendSequenceNumber = (sendSequenceNumber + 1)%32768;
 
             if (maxTimeNoAckSentFuture != null)
             {
@@ -267,32 +144,32 @@ namespace IEC60870.Connection
 
             if (maxTimeNoAckReceivedFuture == null)
             {
-                scheduleMaxTimeNoAckReceivedFuture();
+                ScheduleMaxTimeNoAckReceivedFuture();
             }
 
-            int length = requestAPdu.encode(buffer, settings);
+            var length = requestAPdu.Encode(buffer, settings);
             writer.Write(buffer, 0, length);
             writer.Flush();
 
-            resetMaxIdleTimeTimer();
+            ResetMaxIdleTimeTimer();
         }
 
-        private void sendSFormatPdu()
+        private void SendSFormatPdu()
         {
-            APdu requestAPdu = new APdu(0, receiveSequenceNumber, APdu.APCI_TYPE.S_FORMAT, null);
-            requestAPdu.encode(buffer, settings);
+            var requestAPdu = new APdu(0, receiveSequenceNumber, APdu.ApciType.S_FORMAT, null);
+            requestAPdu.Encode(buffer, settings);
 
             writer.Write(buffer, 0, 6);
             writer.Flush();
 
             acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
 
-            resetMaxIdleTimeTimer();
+            ResetMaxIdleTimeTimer();
         }
 
-        public void sendConfirmation(ASdu aSdu)
+        public void SendConfirmation(ASdu aSdu)
         {
-            CauseOfTransmission cot = aSdu.getCauseOfTransmission();
+            var cot = aSdu.GetCauseOfTransmission();
 
             if (cot == CauseOfTransmission.ACTIVATION)
             {
@@ -303,413 +180,460 @@ namespace IEC60870.Connection
                 cot = CauseOfTransmission.DEACTIVATION_CON;
             }
 
-            send(new ASdu(aSdu.getTypeIdentification(), aSdu.isSequenceOfElements, cot, aSdu.isTestFrame(),
-                aSdu.isNegativeConfirm(), aSdu.getOriginatorAddress(), aSdu.getCommonAddress(),
-                aSdu.getInformationObjects()));
+            Send(new ASdu(aSdu.GetTypeIdentification(), aSdu.IsSequenceOfElements, cot, aSdu.IsTestFrame(),
+                aSdu.IsNegativeConfirm(), aSdu.GetOriginatorAddress(), aSdu.GetCommonAddress(),
+                aSdu.GetInformationObjects()));
         }
 
-        public void singleCommand(int commonAddress, int informationObjectAddress, IeSingleCommand singleCommand)
+        public void SingleCommand(int commonAddress, int informationObjectAddress, IeSingleCommand singleCommand)
         {
-            CauseOfTransmission cot;
+            var cot = singleCommand.IsCommandStateOn()
+                ? CauseOfTransmission.ACTIVATION
+                : CauseOfTransmission.DEACTIVATION;
 
-            if (singleCommand.isCommandStateOn())
-            {
-                cot = CauseOfTransmission.ACTIVATION;
-            }
-            else
-            {
-                cot = CauseOfTransmission.DEACTIVATION;
-            }
+            var aSdu = new ASdu(TypeId.C_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {singleCommand}})
+                });
 
-            ASdu aSdu = new ASdu(TypeId.C_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { singleCommand } }) });
-
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void singleCommandWithTimeTag(int commonAddress, int informationObjectAddress,
+        public void SingleCommandWithTimeTag(int commonAddress, int informationObjectAddress,
             IeSingleCommand singleCommand, IeTime56 timeTag)
         {
-            CauseOfTransmission cot;
+            var cot = singleCommand.IsCommandStateOn()
+                ? CauseOfTransmission.ACTIVATION
+                : CauseOfTransmission.DEACTIVATION;
 
-            if (singleCommand.isCommandStateOn())
-            {
-                cot = CauseOfTransmission.ACTIVATION;
-            }
-            else
-            {
-                cot = CauseOfTransmission.DEACTIVATION;
-            }
+            var aSdu = new ASdu(TypeId.C_SC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {singleCommand, timeTag}})
+                });
 
-            ASdu aSdu = new ASdu(TypeId.C_SC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { singleCommand, timeTag } }) });
-
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void doubleCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void DoubleCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeDoubleCommand doubleCommand)
         {
-            ASdu aSdu = new ASdu(TypeId.C_DC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { doubleCommand } }) });
+            var aSdu = new ASdu(TypeId.C_DC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {doubleCommand}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void doubleCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void DoubleCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeDoubleCommand doubleCommand, IeTime56 timeTag)
         {
-            ASdu aSdu = new ASdu(TypeId.C_DC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { doubleCommand, timeTag } }) });
+            var aSdu = new ASdu(TypeId.C_DC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {doubleCommand, timeTag}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void regulatingStepCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void RegulatingStepCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeRegulatingStepCommand regulatingStepCommand)
         {
-            ASdu aSdu = new ASdu(TypeId.C_RC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { regulatingStepCommand } }) });
+            var aSdu = new ASdu(TypeId.C_RC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {regulatingStepCommand}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void regulatingStepCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
+        public void RegulatingStepCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
             int informationObjectAddress, IeRegulatingStepCommand regulatingStepCommand, IeTime56 timeTag)
         {
-            ASdu aSdu = new ASdu(TypeId.C_RC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { regulatingStepCommand, timeTag } }) });
+            var aSdu = new ASdu(TypeId.C_RC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {regulatingStepCommand, timeTag}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void setNormalizedValueCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void SetNormalizedValueCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeNormalizedValue normalizedValue, IeQualifierOfSetPointCommand qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.C_SE_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { normalizedValue, qualifier } }) });
+            var aSdu = new ASdu(TypeId.C_SE_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {normalizedValue, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void setNormalizedValueCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
+        public void SetNormalizedValueCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
             int informationObjectAddress, IeNormalizedValue normalizedValue, IeQualifierOfSetPointCommand qualifier,
             IeTime56 timeTag)
         {
-            ASdu aSdu = new ASdu(TypeId.C_SE_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { normalizedValue, qualifier, timeTag } }) });
+            var aSdu = new ASdu(TypeId.C_SE_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {normalizedValue, qualifier, timeTag}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void setScaledValueCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void SetScaledValueCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeScaledValue scaledValue, IeQualifierOfSetPointCommand qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.C_SE_NB_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { scaledValue, qualifier } }) });
+            var aSdu = new ASdu(TypeId.C_SE_NB_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {scaledValue, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void setScaledValueCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
+        public void SetScaledValueCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
             int informationObjectAddress, IeScaledValue scaledValue, IeQualifierOfSetPointCommand qualifier,
             IeTime56 timeTag)
         {
-            ASdu aSdu = new ASdu(TypeId.C_SE_TB_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { scaledValue, qualifier, timeTag } }) });
+            var aSdu = new ASdu(TypeId.C_SE_TB_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {scaledValue, qualifier, timeTag}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void setShortFloatCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void SetShortFloatCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeShortFloat shortFloat, IeQualifierOfSetPointCommand qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.C_SE_NC_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { shortFloat, qualifier } }) });
+            var aSdu = new ASdu(TypeId.C_SE_NC_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {shortFloat, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void setShortFloatCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
+        public void SetShortFloatCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
             int informationObjectAddress, IeShortFloat shortFloat, IeQualifierOfSetPointCommand qualifier,
             IeTime56 timeTag)
         {
-            ASdu aSdu = new ASdu(TypeId.C_SE_TC_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { shortFloat, qualifier, timeTag } }) });
+            var aSdu = new ASdu(TypeId.C_SE_TC_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {shortFloat, qualifier, timeTag}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void bitStringCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void BitStringCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeBinaryStateInformation binaryStateInformation)
         {
-            ASdu aSdu = new ASdu(TypeId.C_BO_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { binaryStateInformation } }) });
+            var aSdu = new ASdu(TypeId.C_BO_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {binaryStateInformation}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void bitStringCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void BitStringCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeBinaryStateInformation binaryStateInformation, IeTime56 timeTag)
         {
-            ASdu aSdu = new ASdu(TypeId.C_BO_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { binaryStateInformation, timeTag } }) });
+            var aSdu = new ASdu(TypeId.C_BO_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {binaryStateInformation, timeTag}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void interrogation(int commonAddress, CauseOfTransmission cot, IeQualifierOfInterrogation qualifier)
+        public void Interrogation(int commonAddress, CauseOfTransmission cot, IeQualifierOfInterrogation qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.C_IC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] { new InformationObject(0, new InformationElement[][] { new InformationElement[] { qualifier } }) });
+            var aSdu = new ASdu(TypeId.C_IC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[] {new InformationObject(0, new[] {new InformationElement[] {qualifier}})});
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void counterInterrogation(int commonAddress, CauseOfTransmission cot,
+        public void CounterInterrogation(int commonAddress, CauseOfTransmission cot,
             IeQualifierOfCounterInterrogation qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.C_CI_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] { new InformationObject(0, new InformationElement[][] { new InformationElement[] { qualifier } }) });
+            var aSdu = new ASdu(TypeId.C_CI_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[] {new InformationObject(0, new[] {new InformationElement[] {qualifier}})});
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void readCommand(int commonAddress, int informationObjectAddress)
+        public void ReadCommand(int commonAddress, int informationObjectAddress)
         {
-            ASdu aSdu = new ASdu(TypeId.C_RD_NA_1, false, CauseOfTransmission.REQUEST, false, false, originatorAddress,
-                commonAddress, new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { }) });
+            var aSdu = new ASdu(TypeId.C_RD_NA_1, false, CauseOfTransmission.REQUEST, false, false, originatorAddress,
+                commonAddress, new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new InformationElement[][] {})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void synchronizeClocks(int commonAddress, IeTime56 time)
+        public void SynchronizeClocks(int commonAddress, IeTime56 time)
         {
-            InformationObject io = new InformationObject(0, new InformationElement[][] { new InformationElement[] { time } });
+            var io = new InformationObject(0, new[] {new InformationElement[] {time}});
 
-            InformationObject[] ios = new InformationObject[] { io };
+            InformationObject[] ios = {io};
 
-            ASdu aSdu = new ASdu(TypeId.C_CS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+            var aSdu = new ASdu(TypeId.C_CS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
                 commonAddress, ios);
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void testCommand(int commonAddress)
+        public void TestCommand(int commonAddress)
         {
-            ASdu aSdu = new ASdu(TypeId.C_TS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[] {
-                new InformationObject(0,
-                new InformationElement[][] { new InformationElement[] { new IeFixedTestBitPattern() } }) });
+            var aSdu = new ASdu(TypeId.C_TS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new[]
+                {
+                    new InformationObject(0,
+                        new[] {new InformationElement[] {new IeFixedTestBitPattern()}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void testCommandWithTimeTag(int commonAddress, IeTestSequenceCounter testSequenceCounter, IeTime56 time)
+        public void TestCommandWithTimeTag(int commonAddress, IeTestSequenceCounter testSequenceCounter, IeTime56 time)
         {
-            ASdu aSdu = new ASdu(TypeId.C_TS_TA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[] {
-                new InformationObject(0, new InformationElement[][] { new InformationElement[] { testSequenceCounter, time } }) });
+            var aSdu = new ASdu(TypeId.C_TS_TA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new[]
+                {
+                    new InformationObject(0, new[] {new InformationElement[] {testSequenceCounter, time}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void resetProcessCommand(int commonAddress, IeQualifierOfResetProcessCommand qualifier)
+        public void ResetProcessCommand(int commonAddress, IeQualifierOfResetProcessCommand qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.C_RP_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[] {
-                new InformationObject(0,
-                new InformationElement[][] { new InformationElement[] { qualifier } }) });
+            var aSdu = new ASdu(TypeId.C_RP_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new[]
+                {
+                    new InformationObject(0,
+                        new[] {new InformationElement[] {qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void delayAcquisitionCommand(int commonAddress, CauseOfTransmission cot, IeTime16 time)
+        public void DelayAcquisitionCommand(int commonAddress, CauseOfTransmission cot, IeTime16 time)
         {
-            ASdu aSdu = new ASdu(TypeId.C_CD_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] { new InformationObject(0, new InformationElement[][] { new InformationElement[] { time } }) });
+            var aSdu = new ASdu(TypeId.C_CD_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[] {new InformationObject(0, new[] {new InformationElement[] {time}})});
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void parameterNormalizedValueCommand(int commonAddress, int informationObjectAddress,
+        public void ParameterNormalizedValueCommand(int commonAddress, int informationObjectAddress,
             IeNormalizedValue normalizedValue, IeQualifierOfParameterOfMeasuredValues qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.P_ME_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { normalizedValue, qualifier } }) });
+            var aSdu = new ASdu(TypeId.P_ME_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {normalizedValue, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void parameterScaledValueCommand(int commonAddress, int informationObjectAddress, IeScaledValue scaledValue,
+        public void ParameterScaledValueCommand(int commonAddress, int informationObjectAddress,
+            IeScaledValue scaledValue,
             IeQualifierOfParameterOfMeasuredValues qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.P_ME_NB_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { scaledValue, qualifier } }) });
+            var aSdu = new ASdu(TypeId.P_ME_NB_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {scaledValue, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void parameterShortFloatCommand(int commonAddress, int informationObjectAddress, IeShortFloat shortFloat,
+        public void ParameterShortFloatCommand(int commonAddress, int informationObjectAddress, IeShortFloat shortFloat,
             IeQualifierOfParameterOfMeasuredValues qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.P_ME_NC_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { shortFloat, qualifier } }) });
+            var aSdu = new ASdu(TypeId.P_ME_NC_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {shortFloat, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void parameterActivation(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+        public void ParameterActivation(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeQualifierOfParameterActivation qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.P_AC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { qualifier } }) });
+            var aSdu = new ASdu(TypeId.P_AC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void fileReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                IeLengthOfFileOrSection lengthOfFile, IeFileReadyQualifier qualifier)
+        public void FileReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
+            IeLengthOfFileOrSection lengthOfFile, IeFileReadyQualifier qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.F_FR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress, new InformationObject[] {
-                new InformationObject( informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { nameOfFile, lengthOfFile, qualifier } }) });
+            var aSdu = new ASdu(TypeId.F_FR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+                originatorAddress, commonAddress, new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {nameOfFile, lengthOfFile, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void sectionReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                IeNameOfSection nameOfSection, IeLengthOfFileOrSection lengthOfSection, IeSectionReadyQualifier qualifier)
+        public void SectionReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection, IeLengthOfFileOrSection lengthOfSection, IeSectionReadyQualifier qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.F_SR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress, new InformationObject[] {
-                new InformationObject(
-                informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { nameOfFile, nameOfSection, lengthOfSection, qualifier } }) });
+            var aSdu = new ASdu(TypeId.F_SR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+                originatorAddress, commonAddress, new[]
+                {
+                    new InformationObject(
+                        informationObjectAddress,
+                        new[] {new InformationElement[] {nameOfFile, nameOfSection, lengthOfSection, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void callOrSelectFiles(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                IeNameOfFile nameOfFile, IeNameOfSection nameOfSection, IeSelectAndCallQualifier qualifier)
+        public void CallOrSelectFiles(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+            IeNameOfFile nameOfFile, IeNameOfSection nameOfSection, IeSelectAndCallQualifier qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.F_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { nameOfFile, nameOfSection, qualifier } }) });
+            var aSdu = new ASdu(TypeId.F_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {nameOfFile, nameOfSection, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void lastSectionOrSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                IeNameOfSection nameOfSection, IeLastSectionOrSegmentQualifier qualifier, IeChecksum checksum)
+        public void LastSectionOrSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection, IeLastSectionOrSegmentQualifier qualifier, IeChecksum checksum)
         {
-            ASdu aSdu = new ASdu(TypeId.F_LS_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress, new InformationObject[] {
-                new InformationObject(
-                informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { nameOfFile, nameOfSection, qualifier, checksum } }) });
+            var aSdu = new ASdu(TypeId.F_LS_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+                originatorAddress, commonAddress, new[]
+                {
+                    new InformationObject(
+                        informationObjectAddress,
+                        new[] {new InformationElement[] {nameOfFile, nameOfSection, qualifier, checksum}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void ackFileOrSection(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                IeNameOfSection nameOfSection, IeAckFileOrSectionQualifier qualifier)
+        public void AckFileOrSection(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection, IeAckFileOrSectionQualifier qualifier)
         {
-            ASdu aSdu = new ASdu(TypeId.F_AF_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress, new InformationObject[] {
-                new InformationObject(
-                informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { nameOfFile, nameOfSection, qualifier } }) });
+            var aSdu = new ASdu(TypeId.F_AF_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+                originatorAddress, commonAddress, new[]
+                {
+                    new InformationObject(
+                        informationObjectAddress,
+                        new[] {new InformationElement[] {nameOfFile, nameOfSection, qualifier}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void sendSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                IeNameOfSection nameOfSection, IeFileSegment segment)
+        public void SendSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection, IeFileSegment segment)
         {
-            ASdu aSdu = new ASdu(TypeId.F_SG_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+            var aSdu = new ASdu(TypeId.F_SG_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
-                new InformationObject[] {
-                new InformationObject(informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { nameOfFile, nameOfSection, segment } }) });
-            send(aSdu);
+                new[]
+                {
+                    new InformationObject(informationObjectAddress,
+                        new[] {new InformationElement[] {nameOfFile, nameOfSection, segment}})
+                });
+            Send(aSdu);
         }
 
-        public void sendDirectory(int commonAddress, int informationObjectAddress, InformationElement[][] directory)
+        public void SendDirectory(int commonAddress, int informationObjectAddress, InformationElement[][] directory)
         {
-            ASdu aSdu = new ASdu(TypeId.F_DR_TA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress, new InformationObject[] {
-                new InformationObject(
-                informationObjectAddress, directory) });
+            var aSdu = new ASdu(TypeId.F_DR_TA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+                originatorAddress, commonAddress, new[]
+                {
+                    new InformationObject(
+                        informationObjectAddress, directory)
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void queryLog(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                IeTime56 rangeStartTime, IeTime56 rangeEndTime)
+        public void QueryLog(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
+            IeTime56 rangeStartTime, IeTime56 rangeEndTime)
         {
-            ASdu aSdu = new ASdu(TypeId.F_SC_NB_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress, new InformationObject[] {
-                new InformationObject(
-                informationObjectAddress,
-                new InformationElement[][] { new InformationElement[] { nameOfFile, rangeStartTime, rangeEndTime } }) });
+            var aSdu = new ASdu(TypeId.F_SC_NB_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+                originatorAddress, commonAddress, new[]
+                {
+                    new InformationObject(
+                        informationObjectAddress,
+                        new[] {new InformationElement[] {nameOfFile, rangeStartTime, rangeEndTime}})
+                });
 
-            send(aSdu);
+            Send(aSdu);
         }
 
-        public void setOriginatorAddress(int originatorAddress)
+        public void SetOriginatorAddress(int address)
         {
-            if (originatorAddress < 0 || originatorAddress > 255)
+            if (address < 0 || address > 255)
             {
                 throw new ArgumentException("Originator Address must be between 0 and 255.");
             }
 
-            this.originatorAddress = originatorAddress;
+            originatorAddress = address;
         }
 
-        private int getSequenceNumberDifference(int x, int y)
+        private int GetSequenceNumberDifference(int x, int y)
         {
-            int difference = x - y;
+            var difference = x - y;
             if (difference < 0)
             {
                 difference += 32768;
@@ -718,40 +642,41 @@ namespace IEC60870.Connection
             return difference;
         }
 
-        public int getNumUnconfirmedIPdusSent()
+        public int GetNumUnconfirmedIPdusSent()
         {
             lock (this)
             {
-                return getSequenceNumberDifference(sendSequenceNumber, acknowledgedSendSequenceNumber);
+                return GetSequenceNumberDifference(sendSequenceNumber, acknowledgedSendSequenceNumber);
             }
         }
 
-        public int getOriginatorAddress()
+        public int GetOriginatorAddress()
         {
             return originatorAddress;
         }
 
-        private void handleReceiveSequenceNumber(APdu aPdu)
+        private void HandleReceiveSequenceNumber(APdu aPdu)
         {
-            if (acknowledgedSendSequenceNumber != aPdu.getReceiveSeqNumber())
+            if (acknowledgedSendSequenceNumber != aPdu.GetReceiveSeqNumber())
             {
-                if (getSequenceNumberDifference(aPdu.getReceiveSeqNumber(), acknowledgedSendSequenceNumber) > getNumUnconfirmedIPdusSent())
+                if (GetSequenceNumberDifference(aPdu.GetReceiveSeqNumber(), acknowledgedSendSequenceNumber) >
+                    GetNumUnconfirmedIPdusSent())
                 {
-                    throw new IOException("Got unexpected receive sequence number: " + aPdu.getReceiveSeqNumber()
-                            + ", expected a number between: " + acknowledgedSendSequenceNumber + " and "
-                            + sendSequenceNumber);
+                    throw new IOException("Got unexpected receive sequence number: " + aPdu.GetReceiveSeqNumber()
+                                          + ", expected a number between: " + acknowledgedSendSequenceNumber + " and "
+                                          + sendSequenceNumber);
                 }
 
-                acknowledgedSendSequenceNumber = aPdu.getReceiveSeqNumber();
+                acknowledgedSendSequenceNumber = aPdu.GetReceiveSeqNumber();
 
                 if (sendSequenceNumber != acknowledgedSendSequenceNumber)
                 {
-                    scheduleMaxTimeNoAckReceivedFuture();
+                    ScheduleMaxTimeNoAckReceivedFuture();
                 }
             }
         }
 
-        private void resetMaxIdleTimeTimer()
+        private void ResetMaxIdleTimeTimer()
         {
             if (maxIdleTimeTimerFuture != null)
             {
@@ -763,17 +688,18 @@ namespace IEC60870.Connection
             {
                 try
                 {
-                    writer.Write(TESTFR_ACT_BUFFER, 0, TESTFR_ACT_BUFFER.Length);
+                    writer.Write(TestfrActBuffer, 0, TestfrActBuffer.Length);
                     writer.Flush();
                 }
                 catch (Exception)
                 {
+                    // ignored
                 }
-                scheduleMaxTimeNoTestConReceivedFuture();
-            }, settings.maxIdleTime);
+                ScheduleMaxTimeNoTestConReceivedFuture();
+            }, settings.MaxIdleTime);
         }
 
-        private void scheduleMaxTimeNoTestConReceivedFuture()
+        private void ScheduleMaxTimeNoTestConReceivedFuture()
         {
             if (maxTimeNoTestConReceivedFuture != null)
             {
@@ -783,18 +709,14 @@ namespace IEC60870.Connection
 
             maxTimeNoTestConReceivedFuture = PeriodicTaskFactory.Start(() =>
             {
-                close();
-                if (connectionClosed != null)
-                {
-                    connectionClosed(new IOException(
-                            "The maximum time that no test frame confirmation was received (t1) has been exceeded. t1 = "
-                                    + settings.maxTimeNoAckReceived + "ms"));
-                }
-
-            }, settings.maxTimeNoAckReceived);
+                Close();
+                ConnectionClosed?.Invoke(new IOException(
+                    "The maximum time that no test frame confirmation was received (t1) has been exceeded. t1 = "
+                    + settings.MaxTimeNoAckReceived + "ms"));
+            }, settings.MaxTimeNoAckReceived);
         }
 
-        private void scheduleMaxTimeNoAckReceivedFuture()
+        private void ScheduleMaxTimeNoAckReceivedFuture()
         {
             if (maxTimeNoAckReceivedFuture != null)
             {
@@ -804,16 +726,119 @@ namespace IEC60870.Connection
 
             maxTimeNoAckReceivedFuture = PeriodicTaskFactory.Start(() =>
             {
-                close();
+                Close();
                 maxTimeNoTestConReceivedFuture = null;
-                if (connectionClosed != null)
-                {
-                    connectionClosed(new IOException(
-                            "The maximum time that no test frame confirmation was received (t1) has been exceeded. t1 = "
-                                    + settings.maxTimeNoAckReceived + "ms"));
-                }
+                ConnectionClosed?.Invoke(new IOException(
+                    "The maximum time that no test frame confirmation was received (t1) has been exceeded. t1 = "
+                    + settings.MaxTimeNoAckReceived + "ms"));
+            }, settings.MaxTimeNoAckReceived);
+        }
 
-            }, settings.maxTimeNoAckReceived);
+        private class ConnectionReader : ThreadBase
+        {
+            private readonly Connection innerConnection;
+
+            public ConnectionReader(Connection connection)
+            {
+                innerConnection = connection;
+            }
+
+            public override void Run()
+            {
+                try
+                {
+                    var reader = innerConnection.reader;
+                    while (true)
+                    {
+                        if (reader.ReadByte() != 0x68)
+                        {
+                            throw new IOException("Message does not start with 0x68");
+                        }
+
+                        var aPdu = new APdu(reader, innerConnection.settings);
+                        switch (aPdu.GetApciType())
+                        {
+                            case APdu.ApciType.FORMAT:
+                                if (innerConnection.receiveSequenceNumber != aPdu.GetSendSeqNumber())
+                                {
+                                    throw new IOException("Got unexpected send sequence number: " +
+                                                          aPdu.GetSendSeqNumber()
+                                                          + ", expected: " + innerConnection.receiveSequenceNumber);
+                                }
+
+                                innerConnection.receiveSequenceNumber = (aPdu.GetSendSeqNumber() + 1)%32768;
+                                innerConnection.HandleReceiveSequenceNumber(aPdu);
+
+                                innerConnection.NewASdu?.Invoke(aPdu.GetASdu());
+
+                                var numUnconfirmedIPdusReceived = innerConnection.GetSequenceNumberDifference(
+                                    innerConnection.receiveSequenceNumber,
+                                    innerConnection.acknowledgedReceiveSequenceNumber);
+                                if (numUnconfirmedIPdusReceived > innerConnection.settings.MaxUnconfirmedIPdusReceived)
+                                {
+                                    innerConnection.SendSFormatPdu();
+                                    if (innerConnection.maxTimeNoAckSentFuture != null)
+                                    {
+                                        innerConnection.maxTimeNoAckSentFuture.Cancel();
+                                        innerConnection.maxTimeNoAckSentFuture = null;
+                                    }
+                                }
+                                else
+                                {
+                                    if (innerConnection.maxTimeNoAckSentFuture == null)
+                                    {
+                                        innerConnection.maxTimeNoAckSentFuture =
+                                            PeriodicTaskFactory.Start(() => { innerConnection.SendSFormatPdu(); },
+                                                innerConnection.settings.MaxTimeNoAckSent);
+                                    }
+                                }
+
+                                innerConnection.ResetMaxIdleTimeTimer();
+                                break;
+                            case APdu.ApciType.STARTDT_CON:
+                                innerConnection.startdtConSignal?.CountDown();
+                                innerConnection.ResetMaxIdleTimeTimer();
+                                break;
+                            case APdu.ApciType.STARTDT_ACT:
+                                innerConnection.startdtactSignal?.CountDown();
+                                break;
+                            case APdu.ApciType.S_FORMAT:
+                                innerConnection.HandleReceiveSequenceNumber(aPdu);
+                                innerConnection.ResetMaxIdleTimeTimer();
+                                break;
+                            case APdu.ApciType.TESTFR_ACT:
+                                innerConnection.writer.Write(TestfrConBuffer, 0, TestfrConBuffer.Length);
+                                innerConnection.writer.Flush();
+                                innerConnection.ResetMaxIdleTimeTimer();
+                                break;
+                            case APdu.ApciType.TESTFR_CON:
+                                if (innerConnection.maxTimeNoTestConReceivedFuture != null)
+                                {
+                                    innerConnection.maxTimeNoTestConReceivedFuture.Cancel();
+                                    innerConnection.maxTimeNoTestConReceivedFuture = null;
+                                }
+                                innerConnection.ResetMaxIdleTimeTimer();
+                                break;
+                            default:
+                                throw new IOException("Got unexpected message with APCI Type: " + aPdu.GetApciType());
+                        }
+                    }
+                }
+                catch (IOException e)
+                {
+                    innerConnection.closedIoException = e;
+                }
+                catch (Exception e)
+                {
+                    innerConnection.closedIoException = new IOException(e.Message);
+                }
+                finally
+                {
+                    innerConnection.ConnectionClosed?.Invoke(innerConnection.closedIoException);
+
+                    innerConnection.Close();
+                }
+            }
         }
     }
 }

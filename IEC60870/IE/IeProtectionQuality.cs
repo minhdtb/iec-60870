@@ -1,6 +1,5 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
@@ -11,7 +10,7 @@ namespace IEC60870.IE
         {
             if (elapsedTimeInvalid)
             {
-                value |= 0x08;
+                Value |= 0x08;
             }
         }
 
@@ -19,14 +18,14 @@ namespace IEC60870.IE
         {
         }
 
-        public bool isElapsedTimeInvalid()
+        public bool IsElapsedTimeInvalid()
         {
-            return (value & 0x08) == 0x08;
+            return (Value & 0x08) == 0x08;
         }
 
         public override string ToString()
         {
-            return "Protection Quality, elapsed time invalid: " + isElapsedTimeInvalid() + ", " + base.ToString();
+            return "Protection Quality, elapsed time invalid: " + IsElapsedTimeInvalid() + ", " + base.ToString();
         }
     }
 }

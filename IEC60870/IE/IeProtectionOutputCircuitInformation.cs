@@ -1,14 +1,14 @@
-﻿using IEC60870.IE.Base;
-using System;
-using System.IO;
+﻿using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
-    class IeProtectionOutputCircuitInformation : InformationElement
+    internal class IeProtectionOutputCircuitInformation : InformationElement
     {
-        private int value;
+        private readonly int value;
 
-        public IeProtectionOutputCircuitInformation(bool generalCommand, bool commandToL1, bool commandToL2, bool commandToL3)
+        public IeProtectionOutputCircuitInformation(bool generalCommand, bool commandToL1, bool commandToL2,
+            bool commandToL3)
         {
             value = 0;
 
@@ -36,36 +36,36 @@ namespace IEC60870.IE
         }
 
 
-        public override int encode(byte[] buffer, int i)
+        public override int Encode(byte[] buffer, int i)
         {
-            buffer[i] = (byte)value;
+            buffer[i] = (byte) value;
             return 1;
         }
 
-        public bool isGeneralCommand()
+        public bool IsGeneralCommand()
         {
             return (value & 0x01) == 0x01;
         }
 
-        public bool isCommandToL1()
+        public bool IsCommandToL1()
         {
             return (value & 0x02) == 0x02;
         }
 
-        public bool isCommandToL2()
+        public bool IsCommandToL2()
         {
             return (value & 0x04) == 0x04;
         }
 
-        public bool isCommandToL3()
+        public bool IsCommandToL3()
         {
             return (value & 0x08) == 0x08;
         }
 
         public override string ToString()
         {
-            return "Protection output circuit information, general command: " + isGeneralCommand() + ", command to L1: "
-                    + isCommandToL1() + ", command to L2: " + isCommandToL2() + ", command to L3: " + isCommandToL3();
+            return "Protection output circuit information, general command: " + IsGeneralCommand() + ", command to L1: "
+                   + IsCommandToL1() + ", command to L2: " + IsCommandToL2() + ", command to L3: " + IsCommandToL3();
         }
     }
 }

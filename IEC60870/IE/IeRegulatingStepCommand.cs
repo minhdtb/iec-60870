@@ -1,53 +1,54 @@
-﻿using IEC60870.IE.Base;
-using System;
+﻿using System;
 using System.IO;
+using IEC60870.IE.Base;
 
 namespace IEC60870.IE
 {
     public enum StepCommandState
     {
-        NOT_PERMITTED_A = 0,
-        NEXT_STEP_LOWER,
-        NEXT_STEP_HIGHER,
-        NOT_PERMITTED_B
+        NotPermittedA = 0,
+        NextStepLower,
+        NextStepHigher,
+        NotPermittedB
     }
 
     public class IeRegulatingStepCommand : IeAbstractQualifierOfCommand
     {
-        public static StepCommandState createStepCommandState(int code)
+        public IeRegulatingStepCommand(StepCommandState commandState, int qualifier, bool select)
+            : base(qualifier, select)
         {
-            switch (code)
-            {
-                case 0:
-                    return StepCommandState.NOT_PERMITTED_A;
-                case 1:
-                    return StepCommandState.NEXT_STEP_LOWER;
-                case 2:
-                    return StepCommandState.NEXT_STEP_HIGHER;
-                case 3:
-                    return StepCommandState.NOT_PERMITTED_B;
-                default:
-                    throw new ArgumentException("Invalid code");
-            }
-        }
-
-        public IeRegulatingStepCommand(StepCommandState commandState, int qualifier, bool select) : base(qualifier, select)
-        {
-            value |= (int)commandState;
+            Value |= (int) commandState;
         }
 
         public IeRegulatingStepCommand(BinaryReader reader) : base(reader)
         {
         }
 
-        public StepCommandState getCommandState()
+        public static StepCommandState CreateStepCommandState(int code)
         {
-            return createStepCommandState(value & 0x03);
+            switch (code)
+            {
+                case 0:
+                    return StepCommandState.NotPermittedA;
+                case 1:
+                    return StepCommandState.NextStepLower;
+                case 2:
+                    return StepCommandState.NextStepHigher;
+                case 3:
+                    return StepCommandState.NotPermittedB;
+                default:
+                    throw new ArgumentException("Invalid code");
+            }
+        }
+
+        public StepCommandState GetCommandState()
+        {
+            return CreateStepCommandState(Value & 0x03);
         }
 
         public override string ToString()
         {
-            return "Regulating step command state: " + getCommandState() + ", " + base.ToString();
+            return "Regulating step command state: " + GetCommandState() + ", " + base.ToString();
         }
     }
 }

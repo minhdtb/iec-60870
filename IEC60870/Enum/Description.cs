@@ -13,8 +13,8 @@ namespace IEC60870.Enum
 
         public static Description GetAttr<T>(T p)
         {
-            var info = typeof(T).GetField(System.Enum.GetName(typeof(T), p));
-            return (Description)GetCustomAttribute(info, typeof(Description));
+            var info = typeof (T).GetField(System.Enum.GetName(typeof (T), p));
+            return (Description) GetCustomAttribute(info, typeof (Description));
         }
     }
 }

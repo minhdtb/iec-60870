@@ -4,29 +4,29 @@ namespace IEC60870.Util
 {
     public class CountDownLatch
     {
-        private readonly EventWaitHandle @event;
-        private int remain;
+        private readonly EventWaitHandle _event;
+        private int _remain;
 
         public CountDownLatch(int count)
         {
-            remain = count;
-            @event = new ManualResetEvent(false);
+            _remain = count;
+            _event = new ManualResetEvent(false);
         }
 
         public void CountDown()
         {
-            if (Interlocked.Decrement(ref remain) == 0)
-                @event.Set();
+            if (Interlocked.Decrement(ref _remain) == 0)
+                _event.Set();
         }
 
         public void Wait(int timeout)
         {
-            @event.WaitOne(timeout);
+            _event.WaitOne(timeout);
         }
 
         public void Wait()
         {
-            @event.WaitOne();
+            _event.WaitOne();
         }
     }
 }

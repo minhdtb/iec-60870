@@ -108,7 +108,7 @@ namespace IEC60870.Connection
             }
         }
 
-        public void WaitForStartDt(int timeout = 0)
+        public void WaitForStartDT(int timeout = 0)
         {
             if (timeout < 0)
             {

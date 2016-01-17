@@ -23,7 +23,12 @@ namespace IEC60870.Util
 
         public void Join()
         {
-            thread.Join();
+            thread.Join();           
+        }
+
+        public void Abort()
+        {
+            thread.Abort();
         }
 
         public abstract void Run();

@@ -93,6 +93,7 @@
     <Compile Include="Object\ASdu.cs" />
     <Compile Include="Object\InformationObject.cs" />
     <Compile Include="SAP\ClientSAP.cs" />
+    <Compile Include="SAP\ServerSAP.cs" />
     <Compile Include="Util\CountDownLatch.cs" />
     <Compile Include="Util\PeriodicTaskFactory.cs" />
     <Compile Include="Util\ThreadBase.cs" />

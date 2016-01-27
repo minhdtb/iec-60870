@@ -53,7 +53,12 @@ namespace IEC60870.SAP
                     }
                     catch (IOException)
                     {
-                    }                   
+                    }   
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        break;
+                    }                
                 }
             }
             catch(Exception)
@@ -94,11 +99,12 @@ namespace IEC60870.SAP
             }
         }
 
-        public void StartListen()
+        public void StartListen(int backlog)
         {
             var remoteEp = new IPEndPoint(_host, _port);
             var socket = new Socket(_host.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.Bind(remoteEp);
+            socket.Listen(backlog);
             var serverThread = new ServerThread(socket, _settings, _maxConnections);
             serverThread.Start();
         }

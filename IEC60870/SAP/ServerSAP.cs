@@ -28,8 +28,7 @@ namespace IEC60870.SAP
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
-                }
-               
+                }               
             });
         }
 

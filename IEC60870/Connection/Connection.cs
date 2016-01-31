@@ -7,7 +7,7 @@ using IEC60870.IE.Base;
 using IEC60870.Object;
 using IEC60870.Util;
 
-namespace IEC60870.Connection
+namespace IEC60870.Connections
 {
     public class Connection
     {
@@ -665,6 +665,12 @@ namespace IEC60870.Connection
                     throw new IOException("Got unexpected receive sequence number: " + aPdu.GetReceiveSeqNumber()
                                           + ", expected a number between: " + acknowledgedSendSequenceNumber + " and "
                                           + sendSequenceNumber);
+                }
+
+                if (maxTimeNoAckReceivedFuture != null)
+                {
+                    maxTimeNoAckReceivedFuture.Cancel();
+                    maxTimeNoAckReceivedFuture = null;
                 }
 
                 acknowledgedSendSequenceNumber = aPdu.GetReceiveSeqNumber();

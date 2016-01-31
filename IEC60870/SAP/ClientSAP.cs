@@ -1,4 +1,4 @@
-﻿using IEC60870.Connection;
+﻿using IEC60870.Connections;
 using System;
 using System.IO;
 using System.Net;
@@ -9,7 +9,7 @@ namespace IEC60870.SAP
     public class ClientSAP
     {
         private ConnectionSettings settings = new ConnectionSettings();
-        private Connection.Connection _connection;
+        private Connection _connection;
         private IPAddress _host;
         private int _port;
 
@@ -48,7 +48,7 @@ namespace IEC60870.SAP
                 var socket = new Socket(_host.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 socket.Connect(remoteEp);
 
-                _connection = new Connection.Connection(socket, settings);
+                _connection = new Connection(socket, settings);
                 _connection.NewASdu = NewASdu ?? null;
                 _connection.ConnectionClosed = ConnectionClosed ?? null;
                 _connection.StartDataTransfer();

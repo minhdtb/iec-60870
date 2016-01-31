@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using IEC60870.Connection;
+using IEC60870.Connections;
 using IEC60870.Enum;
 using IEC60870.IE;
 using IEC60870.IE.Base;

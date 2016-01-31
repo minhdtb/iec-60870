@@ -1,9 +1,11 @@
-﻿using IEC60870.Connection;
+﻿using IEC60870.Connections;
+using IEC60870.Object;
 using IEC60870.Util;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using PubSub;
 
 namespace IEC60870.SAP
 {
@@ -11,16 +13,35 @@ namespace IEC60870.SAP
     {
         private Socket _socket;
         private ConnectionSettings _settings;
+        private Connection serverConnection;
         public ConnectionHandler(Socket socket, ConnectionSettings settings): base()
         {
             _socket = socket;
             _settings = settings;
+
+            this.Subscribe<ASdu>(asdu =>
+            {
+                try
+                {
+                    serverConnection.Send(asdu);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+               
+            });
         }
 
         public override void Run()
         {
-            Connection.Connection serverConnection = new Connection.Connection(_socket, _settings);
-            serverConnection.WaitForStartDT();
+            serverConnection = new Connection(_socket, _settings);
+            serverConnection.ConnectionClosed += (a) =>
+            {
+                Console.WriteLine(a);
+            };
+
+            serverConnection.WaitForStartDT(5000);
         }
     }
 
@@ -51,8 +72,9 @@ namespace IEC60870.SAP
                         var handler = new ConnectionHandler(clientSocket, _settings);
                         handler.Start();
                     }
-                    catch (IOException)
+                    catch (IOException e)
                     {
+                        Console.WriteLine(e);
                     }   
                     catch (Exception e)
                     {
@@ -107,6 +129,11 @@ namespace IEC60870.SAP
             socket.Listen(backlog);
             var serverThread = new ServerThread(socket, _settings, _maxConnections);
             serverThread.Start();
+        }
+
+        public void SendASdu(ASdu asdu)
+        {
+            this.Publish(asdu);
         }
 
         public void SetMessageFragmentTimeout(int timeout)

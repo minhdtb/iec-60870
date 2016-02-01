@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using PubSub;
 
 namespace IEC60870.SAP
 {
@@ -19,7 +18,7 @@ namespace IEC60870.SAP
             _socket = socket;
             _settings = settings;
 
-            this.Subscribe<ASdu>(asdu =>
+            this.Subscribe<ASdu>("send", asdu =>
             {
                 try
                 {
@@ -27,7 +26,7 @@ namespace IEC60870.SAP
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    this.Publish("error", e);
                 }               
             });
         }
@@ -35,9 +34,9 @@ namespace IEC60870.SAP
         public override void Run()
         {
             serverConnection = new Connection(_socket, _settings);
-            serverConnection.ConnectionClosed += (a) =>
+            serverConnection.ConnectionClosed += e =>
             {
-                Console.WriteLine(a);
+                this.Publish<Exception>("error", e);
             };
 
             serverConnection.WaitForStartDT(5000);
@@ -73,11 +72,11 @@ namespace IEC60870.SAP
                     }
                     catch (IOException e)
                     {
-                        Console.WriteLine(e);
+                        this.Publish<Exception>("error", e);
                     }   
                     catch (Exception e)
                     {
-                        Console.WriteLine(e);
+                        this.Publish("error", e);
                         break;
                     }                
                 }
@@ -132,7 +131,7 @@ namespace IEC60870.SAP
 
         public void SendASdu(ASdu asdu)
         {
-            this.Publish(asdu);
+            this.Publish("send", asdu);
         }
 
         public void SetMessageFragmentTimeout(int timeout)

@@ -11,20 +11,17 @@ namespace IEC60870.Connections
 {
     public class Connection
     {
-        private static readonly byte[] TestfrConBuffer = {0x68, 0x04, 0x83, 0x00, 0x00, 0x00};
-        private static readonly byte[] TestfrActBuffer = {0x68, 0x04, 0x43, 0x00, 0x00, 0x00};
-        private static readonly byte[] StartdtActBuffer = {0x68, 0x04, 0x07, 0x00, 0x00, 0x00};
-        private static readonly byte[] StartdtConBuffer = {0x68, 0x04, 0x0b, 0x00, 0x00, 0x00};
+        private static readonly byte[] TestfrActBuffer = { 0x68, 0x04, 0x43, 0x00, 0x00, 0x00 };
+        private static readonly byte[] TestfrConBuffer = { 0x68, 0x04, 0x83, 0x00, 0x00, 0x00 };
+        private static readonly byte[] StartdtActBuffer = { 0x68, 0x04, 0x07, 0x00, 0x00, 0x00 };
+        private static readonly byte[] StartdtConBuffer = { 0x68, 0x04, 0x0b, 0x00, 0x00, 0x00 };
 
         private readonly byte[] buffer = new byte[255];
         private readonly BinaryReader reader;
 
         private readonly ConnectionSettings settings;
 
-        private readonly CountDownLatch startdtactSignal;
         private readonly BinaryWriter writer;
-        private int acknowledgedReceiveSequenceNumber;
-        private int acknowledgedSendSequenceNumber;
 
         private bool closed;
         private IOException closedIoException;
@@ -40,10 +37,15 @@ namespace IEC60870.Connections
 
         public ConnectionEventListener.NewASdu NewASdu = null;
 
-        private int originatorAddress;
-        private int receiveSequenceNumber;
+        private int originatorAddress = 0;
 
-        private int sendSequenceNumber;
+        private int receiveSequenceNumber = 0;
+        private int sendSequenceNumber = 0;
+
+        private int acknowledgedReceiveSequenceNumber = 0;
+        private int acknowledgedSendSequenceNumber = 0;
+
+        private readonly CountDownLatch startdtactSignal;
         private CountDownLatch startdtConSignal;
 
         public Connection(Socket socket, ConnectionSettings settings)
@@ -51,6 +53,7 @@ namespace IEC60870.Connections
             this.settings = settings;
 
             var ns = new NetworkStream(socket);
+
             writer = new BinaryWriter(ns);
             reader = new BinaryReader(ns);
 
@@ -95,8 +98,15 @@ namespace IEC60870.Connections
 
             startdtConSignal = new CountDownLatch(1);
 
-            writer.Write(StartdtActBuffer, 0, StartdtActBuffer.Length);
-            writer.Flush();
+            try
+            {
+                writer.Write(StartdtActBuffer, 0, StartdtActBuffer.Length);
+                writer.Flush();
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message);
+            }
 
             if (timeout == 0)
             {
@@ -124,8 +134,15 @@ namespace IEC60870.Connections
                 startdtactSignal.Wait(timeout);
             }
 
-            writer.Write(StartdtConBuffer, 0, StartdtConBuffer.Length);
-            writer.Flush();
+            try
+            {
+                writer.Write(StartdtConBuffer, 0, StartdtConBuffer.Length);
+                writer.Flush();
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message);
+            }
 
             ResetMaxIdleTimeTimer();
         }
@@ -133,8 +150,8 @@ namespace IEC60870.Connections
         public void Send(ASdu aSdu)
         {
             acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
-            var requestAPdu = new APdu(sendSequenceNumber, receiveSequenceNumber, APdu.ApciType.FORMAT, aSdu);
-            sendSequenceNumber = (sendSequenceNumber + 1)%32768;
+            var requestAPdu = new APdu(sendSequenceNumber, receiveSequenceNumber, APdu.ApciType.I_FORMAT, aSdu);
+            sendSequenceNumber = (sendSequenceNumber + 1) % 32768;
 
             if (maxTimeNoAckSentFuture != null)
             {
@@ -167,6 +184,7 @@ namespace IEC60870.Connections
             ResetMaxIdleTimeTimer();
         }
 
+        #region COMMANDS
         public void SendConfirmation(ASdu aSdu)
         {
             var cot = aSdu.GetCauseOfTransmission();
@@ -380,7 +398,7 @@ namespace IEC60870.Connections
         public void Interrogation(int commonAddress, CauseOfTransmission cot, IeQualifierOfInterrogation qualifier)
         {
             var aSdu = new ASdu(TypeId.C_IC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new[] {new InformationObject(0, new[] {new InformationElement[] {qualifier}})});
+                new[] { new InformationObject(0, new[] { new InformationElement[] { qualifier } }) });
 
             Send(aSdu);
         }
@@ -389,7 +407,7 @@ namespace IEC60870.Connections
             IeQualifierOfCounterInterrogation qualifier)
         {
             var aSdu = new ASdu(TypeId.C_CI_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new[] {new InformationObject(0, new[] {new InformationElement[] {qualifier}})});
+                new[] { new InformationObject(0, new[] { new InformationElement[] { qualifier } }) });
 
             Send(aSdu);
         }
@@ -408,9 +426,9 @@ namespace IEC60870.Connections
 
         public void SynchronizeClocks(int commonAddress, IeTime56 time)
         {
-            var io = new InformationObject(0, new[] {new InformationElement[] {time}});
+            var io = new InformationObject(0, new[] { new InformationElement[] { time } });
 
-            InformationObject[] ios = {io};
+            InformationObject[] ios = { io };
 
             var aSdu = new ASdu(TypeId.C_CS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
                 commonAddress, ios);
@@ -456,7 +474,7 @@ namespace IEC60870.Connections
         public void DelayAcquisitionCommand(int commonAddress, CauseOfTransmission cot, IeTime16 time)
         {
             var aSdu = new ASdu(TypeId.C_CD_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new[] {new InformationObject(0, new[] {new InformationElement[] {time}})});
+                new[] { new InformationObject(0, new[] { new InformationElement[] { time } }) });
 
             Send(aSdu);
         }
@@ -621,6 +639,9 @@ namespace IEC60870.Connections
             Send(aSdu);
         }
 
+        #endregion
+        #region HELPER
+
         public void SetOriginatorAddress(int address)
         {
             if (address < 0 || address > 255)
@@ -654,6 +675,8 @@ namespace IEC60870.Connections
         {
             return originatorAddress;
         }
+
+        #endregion
 
         private void HandleReceiveSequenceNumber(APdu aPdu)
         {
@@ -697,10 +720,11 @@ namespace IEC60870.Connections
                     writer.Write(TestfrActBuffer, 0, TestfrActBuffer.Length);
                     writer.Flush();
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // ignored
+                    throw new IOException(e.Message);
                 }
+
                 ScheduleMaxTimeNoTestConReceivedFuture();
             }, settings.MaxIdleTime);
         }
@@ -756,6 +780,7 @@ namespace IEC60870.Connections
                     var reader = innerConnection.reader;
                     while (true)
                     {
+
                         if (reader.ReadByte() != 0x68)
                         {
                             throw new IOException("Message does not start with 0x68");
@@ -764,7 +789,7 @@ namespace IEC60870.Connections
                         var aPdu = new APdu(reader, innerConnection.settings);
                         switch (aPdu.GetApciType())
                         {
-                            case APdu.ApciType.FORMAT:
+                            case APdu.ApciType.I_FORMAT:
                                 if (innerConnection.receiveSequenceNumber != aPdu.GetSendSeqNumber())
                                 {
                                     throw new IOException("Got unexpected send sequence number: " +
@@ -772,7 +797,7 @@ namespace IEC60870.Connections
                                                           + ", expected: " + innerConnection.receiveSequenceNumber);
                                 }
 
-                                innerConnection.receiveSequenceNumber = (aPdu.GetSendSeqNumber() + 1)%32768;
+                                innerConnection.receiveSequenceNumber = (aPdu.GetSendSeqNumber() + 1) % 32768;
                                 innerConnection.HandleReceiveSequenceNumber(aPdu);
 
                                 innerConnection.NewASdu?.Invoke(aPdu.GetASdu());
@@ -794,8 +819,11 @@ namespace IEC60870.Connections
                                     if (innerConnection.maxTimeNoAckSentFuture == null)
                                     {
                                         innerConnection.maxTimeNoAckSentFuture =
-                                            PeriodicTaskFactory.Start(() => { innerConnection.SendSFormatPdu(); },
-                                                innerConnection.settings.MaxTimeNoAckSent);
+                                            PeriodicTaskFactory.Start(() =>
+                                            {
+                                                innerConnection.SendSFormatPdu();
+                                                innerConnection.maxTimeNoAckSentFuture = null;
+                                            }, innerConnection.settings.MaxTimeNoAckSent);
                                     }
                                 }
 
@@ -813,8 +841,16 @@ namespace IEC60870.Connections
                                 innerConnection.ResetMaxIdleTimeTimer();
                                 break;
                             case APdu.ApciType.TESTFR_ACT:
-                                innerConnection.writer.Write(TestfrConBuffer, 0, TestfrConBuffer.Length);
-                                innerConnection.writer.Flush();
+                                try
+                                {
+                                    innerConnection.writer.Write(TestfrConBuffer, 0, TestfrConBuffer.Length);
+                                    innerConnection.writer.Flush();
+                                }
+                                catch (Exception e)
+                                {
+                                    throw new IOException(e.Message);
+                                }
+
                                 innerConnection.ResetMaxIdleTimeTimer();
                                 break;
                             case APdu.ApciType.TESTFR_CON:
@@ -827,6 +863,7 @@ namespace IEC60870.Connections
                                 break;
                             default:
                                 throw new IOException("Got unexpected message with APCI Type: " + aPdu.GetApciType());
+
                         }
                     }
                 }
@@ -841,7 +878,6 @@ namespace IEC60870.Connections
                 finally
                 {
                     innerConnection.ConnectionClosed?.Invoke(innerConnection.closedIoException);
-
                     innerConnection.Close();
                 }
             }

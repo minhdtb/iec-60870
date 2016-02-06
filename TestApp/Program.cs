@@ -13,8 +13,13 @@ namespace TestApp
                 var server = new ServerSAP("127.0.0.1", 2405);               
 
                 client.NewASdu += asdu => {
-                    server.SendASdu(asdu);
                     Console.WriteLine(asdu);
+                    server.SendASdu(asdu);                    
+                };
+
+                client.ConnectionClosed += e =>
+                {
+                    Console.WriteLine(e);
                 };
 
                 client.Connect();

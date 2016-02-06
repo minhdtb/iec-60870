@@ -7,7 +7,7 @@ namespace IEC60870.Object
     {
         public enum ApciType
         {
-            FORMAT,
+            I_FORMAT,
             S_FORMAT,
             TESTFR_CON,
             TESTFR_ACT,
@@ -46,7 +46,7 @@ namespace IEC60870.Object
 
             if ((aPduHeader[0] & 0x01) == 0)
             {
-                apciType = ApciType.FORMAT;
+                apciType = ApciType.I_FORMAT;
                 sendSeqNum = ((aPduHeader[0] & 0xfe) >> 1) + ((aPduHeader[1] & 0xff) << 7);
                 receiveSeqNum = ((aPduHeader[2] & 0xfe) >> 1) + ((aPduHeader[3] & 0xff) << 7);
 
@@ -92,7 +92,7 @@ namespace IEC60870.Object
 
             var length = 4;
 
-            if (apciType == ApciType.FORMAT)
+            if (apciType == ApciType.I_FORMAT)
             {
                 buffer[2] = (byte) (sendSeqNum << 1);
                 buffer[3] = (byte) (sendSeqNum >> 7);

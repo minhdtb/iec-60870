@@ -20,3 +20,10 @@ IEC-60870 is C# version of OpenMUC IEC-60870 library
   client.Connect();
 ```
 
+### Server
+
+```c#
+  var server = new ServerSAP("127.0.0.1", 2405); 
+  server.StartListen(10);
+  server.SendASdu(asdu);         
+```

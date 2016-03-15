@@ -26,7 +26,7 @@ Write your simple client application like this
 ```
 
 ### Server
-and if you want to create server application
+and if you want to create server application then use ServerSAP instead of ClientSAP
 ```csharp
   var server = new ServerSAP("127.0.0.1", 2405); 
   server.StartListen(10);

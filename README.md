@@ -10,7 +10,7 @@ A [nuget package](https://www.nuget.org/packages/IEC60870/) is available for the
 ## Examples
 
 ### Client
-Write your simple client application like this
+Write your simple client application (master) like this
 ```csharp
  var client = new ClientSAP("127.0.0.1", 2404);
  client.NewASdu += asdu => {
@@ -26,7 +26,7 @@ Write your simple client application like this
 ```
 
 ### Server
-and if you want to create server application, you must use ServerSAP instead of ClientSAP
+and if you want to create server application (slave), you must use ServerSAP instead of ClientSAP
 ```csharp
   var server = new ServerSAP("127.0.0.1", 2405); 
   server.StartListen(10);

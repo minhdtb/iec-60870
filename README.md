@@ -15,12 +15,13 @@ Write your simple client application (master) like this
  var client = new ClientSAP("127.0.0.1", 2404);
  client.NewASdu += asdu => {
       // process received Asdu
+      
+      client.SendASdu(asdu);
   };
 
   client.ConnectionClosed += e =>
   {
-      Console.WriteLine(e);
-      client.SendASdu(asdu);
+      Console.WriteLine(e);      
   };
 
   client.Connect();

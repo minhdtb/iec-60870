@@ -33,10 +33,10 @@ and if you want to create server application (slave), you must use ServerSAP ins
   server.StartListen(10);
   server.SendASdu(asdu);  
   
-   server.NewASdu += asdu =>
-   {
-        Console.WriteLine(asdu);      
-    };   
+  server.NewASdu += asdu =>
+  {
+     Console.WriteLine(asdu);      
+  };   
 ```
 
 ## License

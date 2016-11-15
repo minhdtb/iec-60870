@@ -7,7 +7,7 @@ A [nuget package](https://www.nuget.org/packages/IEC60870/) is available for the
 
     PM> Install-Package IEC60870
 
-## Examples
+## Examples (updated for version 1.2)
 
 ### Client
 Write your simple client application (master) like this
@@ -20,6 +20,7 @@ Write your simple client application (master) like this
   client.ConnectionClosed += e =>
   {
       Console.WriteLine(e);
+      client.SendASdu(asdu);
   };
 
   client.Connect();
@@ -30,7 +31,12 @@ and if you want to create server application (slave), you must use ServerSAP ins
 ```csharp
   var server = new ServerSAP("127.0.0.1", 2405); 
   server.StartListen(10);
-  server.SendASdu(asdu);         
+  server.SendASdu(asdu);  
+  
+   server.NewASdu += asdu =>
+   {
+        Console.WriteLine(asdu);      
+    };   
 ```
 
 ## License

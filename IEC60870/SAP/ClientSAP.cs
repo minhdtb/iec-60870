@@ -1,4 +1,5 @@
 ﻿using IEC60870.Connections;
+using IEC60870.Object;
 using System;
 using System.IO;
 using System.Net;
@@ -8,7 +9,7 @@ namespace IEC60870.SAP
 {
     public class ClientSAP
     {
-        private ConnectionSettings settings = new ConnectionSettings();
+        private ConnectionSettings _settings = new ConnectionSettings();
         private Connection _connection;
         private IPAddress _host;
         private int _port;
@@ -48,7 +49,7 @@ namespace IEC60870.SAP
                 var socket = new Socket(_host.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 socket.Connect(remoteEp);
 
-                _connection = new Connection(socket, settings);
+                _connection = new Connection(socket, _settings);
                 _connection.NewASdu = NewASdu ?? null;
                 _connection.ConnectionClosed = ConnectionClosed ?? null;
                 _connection.StartDataTransfer();
@@ -59,6 +60,12 @@ namespace IEC60870.SAP
             }            
         }      
 
+        public void SendASdu(ASdu asdu)
+        {
+            if (_connection != null)
+                _connection.Send(asdu);
+        }
+
         public void SetMessageFragmentTimeout(int timeout)
         {
             if (timeout < 0)
@@ -66,7 +73,7 @@ namespace IEC60870.SAP
                 throw new ArgumentException("Invalid message fragment timeout: " + timeout);
             }
 
-            settings.MessageFragmentTimeout = timeout;
+            _settings.MessageFragmentTimeout = timeout;
         }
 
         public void SetCotFieldLength(int length)
@@ -76,7 +83,7 @@ namespace IEC60870.SAP
                 throw new ArgumentException("Invalid COT length: " + length);
             }
 
-            settings.CotFieldLength = length;
+            _settings.CotFieldLength = length;
         }
 
         public void SetCommonAddressFieldLength(int length)
@@ -86,7 +93,7 @@ namespace IEC60870.SAP
                 throw new ArgumentException("Invalid CA length: " + length);
             }
 
-            settings.CommonAddressFieldLength = length;
+            _settings.CommonAddressFieldLength = length;
         }
 
         public void SetIoaFieldLength(int length)
@@ -96,7 +103,7 @@ namespace IEC60870.SAP
                 throw new ArgumentException("Invalid IOA length: " + length);
             }
 
-            settings.IoaFieldLength = length;
+            _settings.IoaFieldLength = length;
         }
 
         public void SetMaxTimeNoAckReceived(int time)
@@ -107,7 +114,7 @@ namespace IEC60870.SAP
                         + ", time must be between 1000ms and 255000ms");
             }
 
-            settings.MaxTimeNoAckReceived = time;
+            _settings.MaxTimeNoAckReceived = time;
         }
 
         public void SetMaxTimeNoAckSent(int time)
@@ -118,7 +125,7 @@ namespace IEC60870.SAP
                         + ", time must be between 1000ms and 255000ms");
             }
 
-            settings.MaxTimeNoAckSent = time;
+            _settings.MaxTimeNoAckSent = time;
         }
 
         public void SetMaxIdleTime(int time)
@@ -129,7 +136,7 @@ namespace IEC60870.SAP
                         + ", time must be between 1000ms and 172800000ms");
             }
 
-            settings.MaxIdleTime = time;
+            _settings.MaxIdleTime = time;
         }
 
         public void SetMaxUnconfirmedIPdusReceived(int maxNum)
@@ -139,7 +146,7 @@ namespace IEC60870.SAP
                 throw new ArgumentException("invalid maxNum: " + maxNum + ", must be a value between 1 and 32767");
             }
 
-            settings.MaxUnconfirmedIPdusReceived = maxNum;
+            _settings.MaxUnconfirmedIPdusReceived = maxNum;
         }
     }
 }

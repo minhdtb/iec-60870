@@ -1,6 +1,6 @@
 ﻿using IEC60870.Connections;
 using IEC60870.Object;
-using IEC60870.Util;
+using IEC60870.Utils;
 using System;
 using System.IO;
 using System.Net;
@@ -12,17 +12,20 @@ namespace IEC60870.SAP
     {
         private Socket _socket;
         private ConnectionSettings _settings;
-        private Connection serverConnection;
-        public ConnectionHandler(Socket socket, ConnectionSettings settings): base()
+        private Connection _connection;
+        private ConnectionEventListener.NewASdu _newAsduEvent;
+
+        public ConnectionHandler(Socket socket, ConnectionSettings settings, ConnectionEventListener.NewASdu newASduEvent) : base()
         {
             _socket = socket;
             _settings = settings;
+            _newAsduEvent = newASduEvent;
 
             this.Subscribe<ASdu>("send", asdu =>
             {
                 try
                 {
-                    serverConnection.Send(asdu);
+                    _connection.Send(asdu);
                 }
                 catch (Exception e)
                 {
@@ -33,13 +36,15 @@ namespace IEC60870.SAP
 
         public override void Run()
         {
-            serverConnection = new Connection(_socket, _settings);
-            serverConnection.ConnectionClosed += e =>
+            _connection = new Connection(_socket, _settings);
+            _connection.ConnectionClosed += e =>
             {
                 this.Publish<Exception>("error", e);
             };
 
-            serverConnection.WaitForStartDT(5000);
+            _connection.NewASdu += _newAsduEvent;
+
+            _connection.WaitForStartDT(5000);
         }
     }
 
@@ -48,12 +53,14 @@ namespace IEC60870.SAP
         private int _maxConnections;
         private ConnectionSettings _settings;
         private Socket _serverSocket;
+        private ConnectionEventListener.NewASdu _newAsduEvent;
 
-        public ServerThread(Socket serverSocket, ConnectionSettings settings, int maxConnections) : base()
+        public ServerThread(Socket serverSocket, ConnectionSettings settings, int maxConnections, ConnectionEventListener.NewASdu newASduEvent) : base()
         {
             _maxConnections = maxConnections;
             _serverSocket = serverSocket;
             _settings = settings;
+            _newAsduEvent = newASduEvent;
         }
 
         public override void Run()
@@ -67,7 +74,7 @@ namespace IEC60870.SAP
                     try
                     {
                         clientSocket = _serverSocket.Accept();
-                        var handler = new ConnectionHandler(clientSocket, _settings);
+                        var handler = new ConnectionHandler(clientSocket, _settings, _newAsduEvent);
                         handler.Start();
                     }
                     catch (IOException e)
@@ -94,6 +101,8 @@ namespace IEC60870.SAP
         private IPAddress _host;
         private int _port;
         private int _maxConnections = 10;
+
+        public ConnectionEventListener.NewASdu NewASdu { get; set; }
 
         public ServerSAP(IPAddress host)
         {
@@ -125,7 +134,7 @@ namespace IEC60870.SAP
             var socket = new Socket(_host.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.Bind(remoteEp);
             socket.Listen(backlog);
-            var serverThread = new ServerThread(socket, _settings, _maxConnections);
+            var serverThread = new ServerThread(socket, _settings, _maxConnections, NewASdu);
             serverThread.Start();
         }
 

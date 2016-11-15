@@ -96,11 +96,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SAP\ClientSAP.cs" />
     <Compile Include="SAP\ServerSAP.cs" />
-    <Compile Include="Util\CountDownLatch.cs" />
-    <Compile Include="Util\PeriodicTaskFactory.cs" />
-    <Compile Include="Util\PubSubExtensions.cs" />
-    <Compile Include="Util\PubSubHub.cs" />
-    <Compile Include="Util\ThreadBase.cs" />
+    <Compile Include="Utils\CountDownLatch.cs" />
+    <Compile Include="Utils\PeriodicTaskFactory.cs" />
+    <Compile Include="Utils\PubSubExtensions.cs" />
+    <Compile Include="Utils\PubSubHub.cs" />
+    <Compile Include="Utils\ThreadBase.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

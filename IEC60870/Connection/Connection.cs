@@ -5,7 +5,7 @@ using IEC60870.Enum;
 using IEC60870.IE;
 using IEC60870.IE.Base;
 using IEC60870.Object;
-using IEC60870.Util;
+using IEC60870.Utils;
 
 namespace IEC60870.Connections
 {

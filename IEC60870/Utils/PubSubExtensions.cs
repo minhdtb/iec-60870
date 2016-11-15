@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IEC60870.Util
+namespace IEC60870.Utils
 {
     static public class PubSubExtensions
     {

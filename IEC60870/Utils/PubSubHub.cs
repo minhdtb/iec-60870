@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace IEC60870.Util
+namespace IEC60870.Utils
 {
     public class PubSubHub
     {

@@ -14,15 +14,17 @@ namespace IEC60870.SAP
         private readonly ConnectionSettings _settings;
         private Connection _connection;
         private readonly ConnectionEventListener.NewASdu _newAsduEvent;
+        private readonly PubSubHub _pubSubHub;
 
         public ConnectionHandler(Socket socket, ConnectionSettings settings,
-            ConnectionEventListener.NewASdu newASduEvent)
+            ConnectionEventListener.NewASdu newASduEvent, PubSubHub pubSubHub)
         {
             _socket = socket;
             _settings = settings;
             _newAsduEvent = newASduEvent;
+            _pubSubHub = pubSubHub;
 
-            this.Subscribe<ASdu>("send", asdu =>
+            _pubSubHub.Subscribe<ASdu>(this, "send", asdu =>
             {
                 try
                 {
@@ -30,7 +32,7 @@ namespace IEC60870.SAP
                 }
                 catch (Exception e)
                 {
-                    this.Publish("error", e);
+                    _pubSubHub.Publish(this, "error", e);
                 }
             });
         }
@@ -38,7 +40,7 @@ namespace IEC60870.SAP
         public override void Run()
         {
             _connection = new Connection(_socket, _settings);
-            _connection.ConnectionClosed += e => { this.Publish<Exception>("error", e); };
+            _connection.ConnectionClosed += e => { _pubSubHub.Publish<Exception>(this, "error", e); };
 
             _connection.NewASdu += _newAsduEvent;
 
@@ -48,18 +50,21 @@ namespace IEC60870.SAP
 
     internal class ServerThread : ThreadBase
     {
-        private int _maxConnections;
+        private readonly int _maxConnections;
         private readonly ConnectionSettings _settings;
         private readonly Socket _serverSocket;
         private readonly ConnectionEventListener.NewASdu _newAsduEvent;
+        private readonly PubSubHub _pubSubHub;
+        private int _connectionCount;
 
         public ServerThread(Socket serverSocket, ConnectionSettings settings, int maxConnections,
-            ConnectionEventListener.NewASdu newASduEvent)
+            ConnectionEventListener.NewASdu newASduEvent, PubSubHub pubSubHub)
         {
             _maxConnections = maxConnections;
             _serverSocket = serverSocket;
             _settings = settings;
             _newAsduEvent = newASduEvent;
+            _pubSubHub = pubSubHub;
         }
 
         public override void Run()
@@ -67,20 +72,27 @@ namespace IEC60870.SAP
             try
             {
                 while (true)
-                {
+                {                                    
                     try
                     {
                         var clientSocket = _serverSocket.Accept();
-                        var handler = new ConnectionHandler(clientSocket, _settings, _newAsduEvent);
+                        if (_connectionCount == _maxConnections)
+                        {
+                            clientSocket.Close();
+                            continue;
+                        }                            
+                        
+                        var handler = new ConnectionHandler(clientSocket, _settings, _newAsduEvent, _pubSubHub);
                         handler.Start();
+                        _connectionCount++;
                     }
                     catch (IOException e)
                     {
-                        this.Publish<Exception>("error", e);
+                        _pubSubHub.Publish<Exception>(this, "error", e);
                     }
                     catch (Exception e)
                     {
-                        this.Publish("error", e);
+                        _pubSubHub.Publish(this, "error", e);
                         break;
                     }
                 }
@@ -95,6 +107,7 @@ namespace IEC60870.SAP
     public class ServerSAP
     {
         private readonly ConnectionSettings _settings = new ConnectionSettings();
+        private readonly PubSubHub _pubSubHub = new PubSubHub();
         private readonly IPAddress _host;
         private readonly int _port;
         private const int _maxConnections = 10;
@@ -131,13 +144,13 @@ namespace IEC60870.SAP
             var socket = new Socket(_host.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.Bind(remoteEp);
             socket.Listen(backlog);
-            var serverThread = new ServerThread(socket, _settings, _maxConnections, NewASdu);
+            var serverThread = new ServerThread(socket, _settings, _maxConnections, NewASdu, _pubSubHub);
             serverThread.Start();
         }
 
         public void SendASdu(ASdu asdu)
         {
-            this.Publish("send", asdu);
+            _pubSubHub.Publish(this, "send", asdu);
         }
 
         public void SetMessageFragmentTimeout(int timeout)

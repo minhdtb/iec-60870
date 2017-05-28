@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using IEC60870.IE.Base;
 
 namespace IEC60870.IE
@@ -29,6 +30,8 @@ namespace IEC60870.IE
                 case DoublePointInformation.Indeterminate:
                     Value |= 0x03;
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(dpi), dpi, null);
             }
         }
 

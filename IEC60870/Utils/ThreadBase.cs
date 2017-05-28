@@ -11,10 +11,7 @@ namespace IEC60870.Utils
             thread = new Thread(Run);
         }
 
-        public bool IsAlive
-        {
-            get { return thread.IsAlive; }
-        }
+        public bool IsAlive => thread.IsAlive;
 
         public void Start()
         {

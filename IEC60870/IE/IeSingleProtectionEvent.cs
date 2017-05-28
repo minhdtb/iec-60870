@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using IEC60870.IE.Base;
 
 namespace IEC60870.IE
@@ -27,6 +28,10 @@ namespace IEC60870.IE
                 case EventState.On:
                     value |= 0x02;
                     break;
+                case EventState.Indeterminate:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(eventState), eventState, null);
             }
 
             if (elapsedTimeInvalid)

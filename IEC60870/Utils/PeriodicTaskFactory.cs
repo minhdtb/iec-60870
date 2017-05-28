@@ -39,6 +39,7 @@ namespace IEC60870.Utils
                 }
                 catch (Exception)
                 {
+                    // ignored
                 }
             });
 

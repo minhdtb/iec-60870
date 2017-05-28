@@ -59,29 +59,26 @@ namespace IEC60870.Object
             }
             else
             {
-                if (aPduHeader[0] == 0x83)
+                switch (aPduHeader[0])
                 {
-                    apciType = ApciType.TESTFR_CON;
-                }
-                else if (aPduHeader[0] == 0x43)
-                {
-                    apciType = ApciType.TESTFR_ACT;
-                }
-                else if (aPduHeader[0] == 0x23)
-                {
-                    apciType = ApciType.STOPDT_CON;
-                }
-                else if (aPduHeader[0] == 0x13)
-                {
-                    apciType = ApciType.STOPDT_ACT;
-                }
-                else if (aPduHeader[0] == 0x0B)
-                {
-                    apciType = ApciType.STARTDT_CON;
-                }
-                else
-                {
-                    apciType = ApciType.STARTDT_ACT;
+                    case 0x83:
+                        apciType = ApciType.TESTFR_CON;
+                        break;
+                    case 0x43:
+                        apciType = ApciType.TESTFR_ACT;
+                        break;
+                    case 0x23:
+                        apciType = ApciType.STOPDT_CON;
+                        break;
+                    case 0x13:
+                        apciType = ApciType.STOPDT_ACT;
+                        break;
+                    case 0x0B:
+                        apciType = ApciType.STARTDT_CON;
+                        break;
+                    default:
+                        apciType = ApciType.STARTDT_ACT;
+                        break;
                 }
             }
         }
@@ -92,34 +89,33 @@ namespace IEC60870.Object
 
             var length = 4;
 
-            if (apciType == ApciType.I_FORMAT)
+            switch (apciType)
             {
-                buffer[2] = (byte) (sendSeqNum << 1);
-                buffer[3] = (byte) (sendSeqNum >> 7);
-                buffer[4] = (byte) (receiveSeqNum << 1);
-                buffer[5] = (byte) (receiveSeqNum >> 7);
-                length += aSdu.Encode(buffer, 6, settings);
-            }
-            else if (apciType == ApciType.STARTDT_ACT)
-            {
-                buffer[2] = 0x07;
-                buffer[3] = 0x00;
-                buffer[4] = 0x00;
-                buffer[5] = 0x00;
-            }
-            else if (apciType == ApciType.STARTDT_CON)
-            {
-                buffer[2] = 0x0b;
-                buffer[3] = 0x00;
-                buffer[4] = 0x00;
-                buffer[5] = 0x00;
-            }
-            else if (apciType == ApciType.S_FORMAT)
-            {
-                buffer[2] = 0x01;
-                buffer[3] = 0x00;
-                buffer[4] = (byte) (receiveSeqNum << 1);
-                buffer[5] = (byte) (receiveSeqNum >> 7);
+                case ApciType.I_FORMAT:
+                    buffer[2] = (byte) (sendSeqNum << 1);
+                    buffer[3] = (byte) (sendSeqNum >> 7);
+                    buffer[4] = (byte) (receiveSeqNum << 1);
+                    buffer[5] = (byte) (receiveSeqNum >> 7);
+                    length += aSdu.Encode(buffer, 6, settings);
+                    break;
+                case ApciType.STARTDT_ACT:
+                    buffer[2] = 0x07;
+                    buffer[3] = 0x00;
+                    buffer[4] = 0x00;
+                    buffer[5] = 0x00;
+                    break;
+                case ApciType.STARTDT_CON:
+                    buffer[2] = 0x0b;
+                    buffer[3] = 0x00;
+                    buffer[4] = 0x00;
+                    buffer[5] = 0x00;
+                    break;
+                case ApciType.S_FORMAT:
+                    buffer[2] = 0x01;
+                    buffer[3] = 0x00;
+                    buffer[4] = (byte) (receiveSeqNum << 1);
+                    buffer[5] = (byte) (receiveSeqNum >> 7);
+                    break;
             }
 
             buffer[1] = (byte) length;

@@ -17,23 +17,23 @@ namespace IEC60870.Utils
 
         public void Publish<T>(object sender, string topic, T data)
         {
-            if (handlers.ContainsKey(topic))
+            lock (locker)
             {
-                var listHandler = handlers[topic];
-                listHandler.ForEach(handler =>
+                if (handlers.ContainsKey(topic))
                 {
-                    if (handler.Sender.IsAlive)
+                    var listHandler = handlers[topic];
+                    listHandler.ForEach(handler =>
                     {
-                        ((Action<T>)handler.Action)(data);
-                    }
-                    else
-                    {
-                        lock (locker)
+                        if (handler.Sender.IsAlive)
+                        {
+                            ((Action<T>) handler.Action)(data);
+                        }
+                        else
                         {
                             handlers[topic].Remove(handler);
                         }
-                    }
-                });
+                    });
+                }
             }
         }
 
@@ -46,16 +46,13 @@ namespace IEC60870.Utils
                 Type = typeof(T)
             };
 
-            if (handlers.ContainsKey(topic))
+            lock (locker)
             {
-                lock (locker)
+                if (handlers.ContainsKey(topic))
                 {
                     handlers[topic].Add(item);
                 }
-            }
-            else
-            {
-                lock (locker)
+                else
                 {
                     handlers[topic] = new List<Handler>();
                     handlers[topic].Add(item);

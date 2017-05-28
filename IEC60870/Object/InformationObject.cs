@@ -49,7 +49,7 @@ namespace IEC60870.Object
                 // 2
                 case TypeId.M_SP_TA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeSinglePointWithQuality(reader), new IeTime24(reader)}};
+                        {new InformationElement[] {new IeSinglePointWithQuality(reader), new IeTime24(reader)}};
                     break;
                 // 3
                 case TypeId.M_DP_NA_1:
@@ -63,7 +63,7 @@ namespace IEC60870.Object
                 // 4
                 case TypeId.M_DP_TA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeDoublePointWithQuality(reader), new IeTime24(reader)}};
+                        {new InformationElement[] {new IeDoublePointWithQuality(reader), new IeTime24(reader)}};
                     break;
                 // 5
                 case TypeId.M_ST_NA_1:
@@ -80,7 +80,7 @@ namespace IEC60870.Object
                     informationElements = new[]
                     {
                         new InformationElement[]
-                        {new IeValueWithTransientState(reader), new IeQuality(reader), new IeTime24(reader)}
+                            {new IeValueWithTransientState(reader), new IeQuality(reader), new IeTime24(reader)}
                     };
                     break;
                 // 7
@@ -98,7 +98,7 @@ namespace IEC60870.Object
                     informationElements = new[]
                     {
                         new InformationElement[]
-                        {new IeBinaryStateInformation(reader), new IeQuality(reader), new IeTime24(reader)}
+                            {new IeBinaryStateInformation(reader), new IeQuality(reader), new IeTime24(reader)}
                     };
                     break;
                 // 9
@@ -116,7 +116,7 @@ namespace IEC60870.Object
                     informationElements = new[]
                     {
                         new InformationElement[]
-                        {new IeNormalizedValue(reader), new IeQuality(reader), new IeTime24(reader)}
+                            {new IeNormalizedValue(reader), new IeQuality(reader), new IeTime24(reader)}
                     };
                     break;
                 // 11
@@ -132,7 +132,10 @@ namespace IEC60870.Object
                 // 12
                 case TypeId.M_ME_TB_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeScaledValue(reader), new IeQuality(reader), new IeTime24(reader)}};
+                    {
+                        new InformationElement[]
+                            {new IeScaledValue(reader), new IeQuality(reader), new IeTime24(reader)}
+                    };
                     break;
                 // 13
                 case TypeId.M_ME_NC_1:
@@ -147,7 +150,9 @@ namespace IEC60870.Object
                 // 14
                 case TypeId.M_ME_TC_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeShortFloat(reader), new IeQuality(reader), new IeTime24(reader)}};
+                    {
+                        new InformationElement[] {new IeShortFloat(reader), new IeQuality(reader), new IeTime24(reader)}
+                    };
                     break;
                 // 15
                 case TypeId.M_IT_NA_1:
@@ -161,14 +166,14 @@ namespace IEC60870.Object
                 // 16
                 case TypeId.M_IT_TA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeBinaryCounterReading(reader), new IeTime24(reader)}};
+                        {new InformationElement[] {new IeBinaryCounterReading(reader), new IeTime24(reader)}};
                     break;
                 // 17
                 case TypeId.M_EP_TA_1:
                     informationElements = new[]
                     {
                         new InformationElement[]
-                        {new IeSingleProtectionEvent(reader), new IeTime16(reader), new IeTime24(reader)}
+                            {new IeSingleProtectionEvent(reader), new IeTime16(reader), new IeTime24(reader)}
                     };
                     break;
                 // 18
@@ -215,19 +220,19 @@ namespace IEC60870.Object
                 // 30
                 case TypeId.M_SP_TB_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeSinglePointWithQuality(reader), new IeTime56(reader)}};
+                        {new InformationElement[] {new IeSinglePointWithQuality(reader), new IeTime56(reader)}};
                     break;
                 // 31
                 case TypeId.M_DP_TB_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeDoublePointWithQuality(reader), new IeTime56(reader)}};
+                        {new InformationElement[] {new IeDoublePointWithQuality(reader), new IeTime56(reader)}};
                     break;
                 // 32
                 case TypeId.M_ST_TB_1:
                     informationElements = new[]
                     {
                         new InformationElement[]
-                        {new IeValueWithTransientState(reader), new IeQuality(reader), new IeTime56(reader)}
+                            {new IeValueWithTransientState(reader), new IeQuality(reader), new IeTime56(reader)}
                     };
                     break;
                 // 33
@@ -235,7 +240,7 @@ namespace IEC60870.Object
                     informationElements = new[]
                     {
                         new InformationElement[]
-                        {new IeBinaryStateInformation(reader), new IeQuality(reader), new IeTime56(reader)}
+                            {new IeBinaryStateInformation(reader), new IeQuality(reader), new IeTime56(reader)}
                     };
                     break;
                 // 34
@@ -243,30 +248,35 @@ namespace IEC60870.Object
                     informationElements = new[]
                     {
                         new InformationElement[]
-                        {new IeNormalizedValue(reader), new IeQuality(reader), new IeTime56(reader)}
+                            {new IeNormalizedValue(reader), new IeQuality(reader), new IeTime56(reader)}
                     };
                     break;
                 // 35
                 case TypeId.M_ME_TE_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeScaledValue(reader), new IeQuality(reader), new IeTime56(reader)}};
+                    {
+                        new InformationElement[]
+                            {new IeScaledValue(reader), new IeQuality(reader), new IeTime56(reader)}
+                    };
                     break;
                 // 36
                 case TypeId.M_ME_TF_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeShortFloat(reader), new IeQuality(reader), new IeTime56(reader)}};
+                    {
+                        new InformationElement[] {new IeShortFloat(reader), new IeQuality(reader), new IeTime56(reader)}
+                    };
                     break;
                 // 37
                 case TypeId.M_IT_TB_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeBinaryCounterReading(reader), new IeTime56(reader)}};
+                        {new InformationElement[] {new IeBinaryCounterReading(reader), new IeTime56(reader)}};
                     break;
                 // 38
                 case TypeId.M_EP_TD_1:
                     informationElements = new[]
                     {
                         new InformationElement[]
-                        {new IeSingleProtectionEvent(reader), new IeTime16(reader), new IeTime56(reader)}
+                            {new IeSingleProtectionEvent(reader), new IeTime16(reader), new IeTime56(reader)}
                     };
                     break;
                 // 39
@@ -306,17 +316,22 @@ namespace IEC60870.Object
                 // 48
                 case TypeId.C_SE_NA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeNormalizedValue(reader), new IeQualifierOfSetPointCommand(reader)}};
+                    {
+                        new InformationElement[]
+                            {new IeNormalizedValue(reader), new IeQualifierOfSetPointCommand(reader)}
+                    };
                     break;
                 // 49
                 case TypeId.C_SE_NB_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeScaledValue(reader), new IeQualifierOfSetPointCommand(reader)}};
+                    {
+                        new InformationElement[] {new IeScaledValue(reader), new IeQualifierOfSetPointCommand(reader)}
+                    };
                     break;
                 // 50
                 case TypeId.C_SE_NC_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeShortFloat(reader), new IeQualifierOfSetPointCommand(reader)}};
+                        {new InformationElement[] {new IeShortFloat(reader), new IeQualifierOfSetPointCommand(reader)}};
                     break;
                 // 51
                 case TypeId.C_BO_NA_1:
@@ -325,17 +340,17 @@ namespace IEC60870.Object
                 // 58
                 case TypeId.C_SC_TA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeSingleCommand(reader), new IeTime56(reader)}};
+                        {new InformationElement[] {new IeSingleCommand(reader), new IeTime56(reader)}};
                     break;
                 // 59
                 case TypeId.C_DC_TA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeDoubleCommand(reader), new IeTime56(reader)}};
+                        {new InformationElement[] {new IeDoubleCommand(reader), new IeTime56(reader)}};
                     break;
                 // 60
                 case TypeId.C_RC_TA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeBinaryStateInformation(reader), new IeTime56(reader)}};
+                        {new InformationElement[] {new IeBinaryStateInformation(reader), new IeTime56(reader)}};
                     break;
                 // 61
                 case TypeId.C_SE_TA_1:
@@ -373,7 +388,7 @@ namespace IEC60870.Object
                 // 64
                 case TypeId.C_BO_TA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeBinaryStateInformation(reader), new IeTime56(reader)}};
+                        {new InformationElement[] {new IeBinaryStateInformation(reader), new IeTime56(reader)}};
                     break;
                 // 70
                 case TypeId.M_EI_NA_1:
@@ -386,7 +401,7 @@ namespace IEC60870.Object
                 // 101
                 case TypeId.C_CI_NA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeQualifierOfCounterInterrogation(reader)}};
+                        {new InformationElement[] {new IeQualifierOfCounterInterrogation(reader)}};
                     break;
                 // 102
                 case TypeId.C_RD_NA_1:
@@ -403,7 +418,7 @@ namespace IEC60870.Object
                 // 105
                 case TypeId.C_RP_NA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeQualifierOfResetProcessCommand(reader)}};
+                        {new InformationElement[] {new IeQualifierOfResetProcessCommand(reader)}};
                     break;
                 // 106
                 case TypeId.C_CD_NA_1:
@@ -412,7 +427,7 @@ namespace IEC60870.Object
                 // 107
                 case TypeId.C_TS_TA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeTestSequenceCounter(reader), new IeTime56(reader)}};
+                        {new InformationElement[] {new IeTestSequenceCounter(reader), new IeTime56(reader)}};
                     break;
                 // 110
                 case TypeId.P_ME_NA_1:
@@ -450,7 +465,7 @@ namespace IEC60870.Object
                 // 113
                 case TypeId.P_AC_NA_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeQualifierOfParameterActivation(reader)}};
+                        {new InformationElement[] {new IeQualifierOfParameterActivation(reader)}};
                     break;
                 // 120
                 case TypeId.F_FR_NA_1:
@@ -533,7 +548,9 @@ namespace IEC60870.Object
                 // 127
                 case TypeId.F_SC_NB_1:
                     informationElements = new[]
-                    {new InformationElement[] {new IeNameOfFile(reader), new IeTime56(reader), new IeTime56(reader)}};
+                    {
+                        new InformationElement[] {new IeNameOfFile(reader), new IeTime56(reader), new IeTime56(reader)}
+                    };
                     break;
                 default:
                     throw new IOException(

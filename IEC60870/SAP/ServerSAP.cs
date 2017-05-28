@@ -8,14 +8,15 @@ using System.Net.Sockets;
 
 namespace IEC60870.SAP
 {
-    class ConnectionHandler : ThreadBase
+    internal class ConnectionHandler : ThreadBase
     {
-        private Socket _socket;
-        private ConnectionSettings _settings;
+        private readonly Socket _socket;
+        private readonly ConnectionSettings _settings;
         private Connection _connection;
-        private ConnectionEventListener.NewASdu _newAsduEvent;
+        private readonly ConnectionEventListener.NewASdu _newAsduEvent;
 
-        public ConnectionHandler(Socket socket, ConnectionSettings settings, ConnectionEventListener.NewASdu newASduEvent) : base()
+        public ConnectionHandler(Socket socket, ConnectionSettings settings,
+            ConnectionEventListener.NewASdu newASduEvent)
         {
             _socket = socket;
             _settings = settings;
@@ -30,17 +31,14 @@ namespace IEC60870.SAP
                 catch (Exception e)
                 {
                     this.Publish("error", e);
-                }               
+                }
             });
         }
 
         public override void Run()
         {
             _connection = new Connection(_socket, _settings);
-            _connection.ConnectionClosed += e =>
-            {
-                this.Publish<Exception>("error", e);
-            };
+            _connection.ConnectionClosed += e => { this.Publish<Exception>("error", e); };
 
             _connection.NewASdu += _newAsduEvent;
 
@@ -48,14 +46,15 @@ namespace IEC60870.SAP
         }
     }
 
-    class ServerThread : ThreadBase
+    internal class ServerThread : ThreadBase
     {
         private int _maxConnections;
-        private ConnectionSettings _settings;
-        private Socket _serverSocket;
-        private ConnectionEventListener.NewASdu _newAsduEvent;
+        private readonly ConnectionSettings _settings;
+        private readonly Socket _serverSocket;
+        private readonly ConnectionEventListener.NewASdu _newAsduEvent;
 
-        public ServerThread(Socket serverSocket, ConnectionSettings settings, int maxConnections, ConnectionEventListener.NewASdu newASduEvent) : base()
+        public ServerThread(Socket serverSocket, ConnectionSettings settings, int maxConnections,
+            ConnectionEventListener.NewASdu newASduEvent)
         {
             _maxConnections = maxConnections;
             _serverSocket = serverSocket;
@@ -67,40 +66,38 @@ namespace IEC60870.SAP
         {
             try
             {
-                Socket clientSocket = null;
-
-                while(true)
+                while (true)
                 {
                     try
                     {
-                        clientSocket = _serverSocket.Accept();
+                        var clientSocket = _serverSocket.Accept();
                         var handler = new ConnectionHandler(clientSocket, _settings, _newAsduEvent);
                         handler.Start();
                     }
                     catch (IOException e)
                     {
                         this.Publish<Exception>("error", e);
-                    }   
+                    }
                     catch (Exception e)
                     {
                         this.Publish("error", e);
                         break;
-                    }                
+                    }
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 Abort();
-            }                     
+            }
         }
     }
 
     public class ServerSAP
     {
-        private ConnectionSettings _settings = new ConnectionSettings();       
-        private IPAddress _host;
-        private int _port;
-        private int _maxConnections = 10;
+        private readonly ConnectionSettings _settings = new ConnectionSettings();
+        private readonly IPAddress _host;
+        private readonly int _port;
+        private const int _maxConnections = 10;
 
         public ConnectionEventListener.NewASdu NewASdu { get; set; }
 
@@ -188,7 +185,7 @@ namespace IEC60870.SAP
             if (time < 1000 || time > 255000)
             {
                 throw new ArgumentException("Invalid NoACK received timeout: " + time
-                        + ", time must be between 1000ms and 255000ms");
+                                            + ", time must be between 1000ms and 255000ms");
             }
 
             _settings.MaxTimeNoAckReceived = time;
@@ -199,7 +196,7 @@ namespace IEC60870.SAP
             if (time < 1000 || time > 255000)
             {
                 throw new ArgumentException("Invalid NoACK sent timeout: " + time
-                        + ", time must be between 1000ms and 255000ms");
+                                            + ", time must be between 1000ms and 255000ms");
             }
 
             _settings.MaxTimeNoAckSent = time;
@@ -210,7 +207,7 @@ namespace IEC60870.SAP
             if (time < 1000 || time > 172800000)
             {
                 throw new ArgumentException("Invalid idle timeout: " + time
-                        + ", time must be between 1000ms and 172800000ms");
+                                            + ", time must be between 1000ms and 172800000ms");
             }
 
             _settings.MaxIdleTime = time;

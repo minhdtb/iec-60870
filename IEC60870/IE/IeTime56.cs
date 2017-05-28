@@ -12,7 +12,7 @@ namespace IEC60870.IE
         public IeTime56(long timestamp, TimeZone timeZone, bool invalid)
         {
             var datetime = new DateTime(timestamp);
-            var ms = datetime.Millisecond + 1000*datetime.Second;
+            var ms = datetime.Millisecond + 1000 * datetime.Second;
 
             value[0] = (byte) ms;
             value[1] = (byte) (ms >> 8);
@@ -27,9 +27,9 @@ namespace IEC60870.IE
             {
                 value[3] |= 0x80;
             }
-            value[4] = (byte) (datetime.Day + ((((int) datetime.DayOfWeek + 5)%7 + 1) << 5));
+            value[4] = (byte) (datetime.Day + ((((int) datetime.DayOfWeek + 5) % 7 + 1) << 5));
             value[5] = (byte) (datetime.Month + 1);
-            value[6] = (byte) (datetime.Year%100);
+            value[6] = (byte) (datetime.Year % 100);
         }
 
         public IeTime56(long timestamp) : this(timestamp, TimeZone.CurrentTimeZone, false)
@@ -57,10 +57,8 @@ namespace IEC60870.IE
 
         public long GetTimestamp(int startOfCentury, TimeZone timeZone)
         {
-            var century = startOfCentury/100*100;
-            if (value[6] < startOfCentury%100)
+            if (value[6] < startOfCentury % 100)
             {
-                century += 100;
             }
 
             return -1;
@@ -78,12 +76,12 @@ namespace IEC60870.IE
 
         public int GetMillisecond()
         {
-            return ((value[0] & 0xff) + ((value[1] & 0xff) << 8))%1000;
+            return ((value[0] & 0xff) + ((value[1] & 0xff) << 8)) % 1000;
         }
 
         public int GetSecond()
         {
-            return ((value[0] & 0xff) + ((value[1] & 0xff) << 8))/1000;
+            return ((value[0] & 0xff) + ((value[1] & 0xff) << 8)) / 1000;
         }
 
         public int GetMinute()

@@ -5,7 +5,7 @@ namespace TestApp
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             try
             {
@@ -16,29 +16,26 @@ namespace TestApp
                 {
                     Console.WriteLine(asdu);
                     server.SendASdu(asdu);
-                };              
+                };
 
-                client.NewASdu += asdu => {
+                client.NewASdu += asdu =>
+                {
                     Console.WriteLine(asdu);
                     client.SendASdu(asdu);
                 };
 
-                client.ConnectionClosed += e =>
-                {
-                    Console.WriteLine(e);
-                };
+                client.ConnectionClosed += Console.WriteLine;
 
                 client.Connect();
 
                 server.StartListen(100);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }
 
             Console.ReadLine();
         }
-
     }
 }

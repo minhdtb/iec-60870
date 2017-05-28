@@ -2,16 +2,16 @@
 
 namespace IEC60870.Utils
 {
-    static public class PubSubExtensions
+    public static class PubSubExtensions
     {
-        static private readonly PubSubHub hub = new PubSubHub();
+        private static readonly PubSubHub hub = new PubSubHub();
 
-        static public void Publish<T>(this object obj, string topic, T data)
+        public static void Publish<T>(this object obj, string topic, T data)
         {
             hub.Publish(obj, topic, data);
         }
 
-        static public void Subscribe<T>(this object obj, string topic, Action<T> handler)
+        public static void Subscribe<T>(this object obj, string topic, Action<T> handler)
         {
             hub.Subscribe(obj, topic, handler);
         }

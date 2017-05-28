@@ -255,11 +255,11 @@ namespace IEC60870.Object
                 var l = 1;
                 foreach (var b in privateInformation)
                 {
-                    if ((l != 1) && ((l - 1)%8 == 0))
+                    if ((l != 1) && ((l - 1) % 8 == 0))
                     {
                         builder.Append(' ');
                     }
-                    if ((l != 1) && ((l - 1)%16 == 0))
+                    if ((l != 1) && ((l - 1) % 16 == 0))
                     {
                         builder.Append('\n');
                     }

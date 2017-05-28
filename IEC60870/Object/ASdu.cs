@@ -230,7 +230,7 @@ namespace IEC60870.Object
                 i += privateInformation.Length;
             }
 
-            return i - origi + 1;
+            return i - origi;
         }
 
         public override string ToString()

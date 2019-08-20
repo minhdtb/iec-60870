@@ -1,6 +1,6 @@
 # [IEC-60870](https://github.com/minhdtb/IEC-60870/)
 
-IEC-60870 is C# version of OpenMUC IEC-60870 library
+IEC-60870 is C# version of [OpenMUC IEC-60870 library](https://www.openmuc.org/)
 
 ## Installation
 A [nuget package](https://www.nuget.org/packages/IEC60870/) is available for the library. To install `IEC60870 Library`, run the following command in the Package Manager Console:
